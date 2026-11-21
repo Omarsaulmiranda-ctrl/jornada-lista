@@ -9,6 +9,10 @@ export type NuevaJornada = {
   municipioId: string;
   programa: string;
   localidad: string;
+  colonia?: string;
+  ubicacion?: string;
+  lat?: number | null;
+  lng?: number | null;
   sede: string;
   fecha: string;
   servicios: string[];
@@ -24,6 +28,10 @@ export async function crearJornadaConRequisitos(n: NuevaJornada): Promise<string
       municipio_id: n.municipioId,
       programa: n.programa,
       localidad: n.localidad || null,
+      colonia: n.colonia || null,
+      ubicacion: n.ubicacion || null,
+      lat: n.lat ?? null,
+      lng: n.lng ?? null,
       sede: n.sede,
       fecha: n.fecha,
       servicios: n.servicios,
@@ -62,8 +70,8 @@ export async function crearJornadaConRequisitos(n: NuevaJornada): Promise<string
 export const ENLACES_DEMO = [
   { token: "demo-villa-ejemplo", municipio: "Villa Ejemplo" },
   { token: "demo-san-ficticio", municipio: "San Ficticio del Valle" },
-  { token: "demo-puerto-muestra", municipio: "Puerto Muestra" },
-  { token: "demo-valle-de-prueba", municipio: "Valle de Prueba" },
+  { token: "demo-gomez-farias", municipio: "Gómez Farías" },
+  { token: "demo-tapalpa", municipio: "Tapalpa" },
 ];
 
 const EIRA = "Coordinación EIRA (demo)";
@@ -121,8 +129,8 @@ export async function reiniciarDatosDemo(): Promise<void> {
     .insert([
       { nombre: "Villa Ejemplo", enlace_nombre: "Laura Ejemplo Ruiz", enlace_cargo: "Enlace de Salud Municipal", enlace_telefono: "3410000001", token_hash: hashToken("demo-villa-ejemplo") },
       { nombre: "San Ficticio del Valle", enlace_nombre: "Mario Prueba Soto", enlace_cargo: "Director del DIF Municipal", enlace_telefono: "3410000002", token_hash: hashToken("demo-san-ficticio") },
-      { nombre: "Puerto Muestra", enlace_nombre: "Elena Demo Castillo", enlace_cargo: "Regidora de Salud", enlace_telefono: "3410000003", token_hash: hashToken("demo-puerto-muestra") },
-      { nombre: "Valle de Prueba", enlace_nombre: "Rosa Modelo Vega", enlace_cargo: "Coordinadora de Salud", enlace_telefono: "3410000004", token_hash: hashToken("demo-valle-de-prueba") },
+      { nombre: "Gómez Farías", enlace_nombre: "Elena Demo Castillo", enlace_cargo: "Regidora de Salud", enlace_telefono: "3410000003", token_hash: hashToken("demo-gomez-farias") },
+      { nombre: "Tapalpa", enlace_nombre: "Rosa Modelo Vega", enlace_cargo: "Coordinadora de Salud", enlace_telefono: "3410000004", token_hash: hashToken("demo-tapalpa") },
     ])
     .select("id,nombre,enlace_nombre");
   if (error) throw new Error(error.message);
@@ -132,9 +140,9 @@ export async function reiniciarDatosDemo(): Promise<void> {
   const todos = REQUISITOS_BASE.map((r) => ({ clave: r.clave, critico: r.critico }));
   const comun = { programa: "Tamizaje Rosa", servicios: ["Papanicolaou", "Ultrasonido de mama", "Valoración nutricional"], responsableEira: "Coordinación EIRA", requisitos: todos };
 
-  const sanFicticio = await crearJornadaConRequisitos({ ...comun, municipioId: m("San Ficticio del Valle").id, localidad: "Cabecera municipal", sede: "Casa de la Cultura", fecha: sumarDias(dia, 12), aliado: "Agrícola Ficticia S.A." });
-  const puerto = await crearJornadaConRequisitos({ ...comun, municipioId: m("Puerto Muestra").id, localidad: "Colonia Centro", sede: "Auditorio Municipal", fecha: sumarDias(dia, 25), aliado: "" });
-  const valle = await crearJornadaConRequisitos({ ...comun, municipioId: m("Valle de Prueba").id, localidad: "Delegación El Modelo", sede: "Salón Ejidal", fecha: sumarDias(dia, 40), aliado: "Fundación Demo" });
+  const sanFicticio = await crearJornadaConRequisitos({ ...comun, municipioId: m("San Ficticio del Valle").id, localidad: "Cabecera municipal", colonia: "Ubicación de ejemplo", ubicacion: "Punto de ejemplo en la región Sur de Jalisco", lat: 19.95, lng: -103.42, sede: "Casa de la Cultura", fecha: sumarDias(dia, 12), aliado: "Agrícola Ficticia S.A." });
+  const puerto = await crearJornadaConRequisitos({ ...comun, municipioId: m("Gómez Farías").id, localidad: "San Sebastián del Sur", colonia: "San Sebastián del Sur", ubicacion: "San Sebastián del Sur, Gómez Farías, Región Sur, Jalisco, México", lat: 19.7935613, lng: -103.4749503, sede: "Auditorio Municipal", fecha: sumarDias(dia, 25), aliado: "" });
+  const valle = await crearJornadaConRequisitos({ ...comun, municipioId: m("Tapalpa").id, localidad: "Juanacatlán", colonia: "Juanacatlán", ubicacion: "Juanacatlán, Tapalpa, Región Sur, Jalisco, México", lat: 20.033651, lng: -103.6871914, sede: "Salón Ejidal", fecha: sumarDias(dia, 40), aliado: "Fundación Demo" });
 
   const requisitosDe = async (jornadaId: string) => {
     const { data } = await base.from("requisitos").select("id,clave").eq("jornada_id", jornadaId);
@@ -184,19 +192,19 @@ export async function reiniciarDatosDemo(): Promise<void> {
     await entregar({ jornadaId: sanFicticio, requisitoId: r("persona_enlace"), autor, estado: "aprobado", datos: enlace(autor) });
     await entregar({ jornadaId: sanFicticio, requisitoId: r("fotos_espacio"), autor, estado: "observado", foto: [214, 196, 178], motivo: "Falta la fotografía de los sanitarios." });
   }
-  // Puerto Muestra: todo lo crítico aprobado.
+  // Gómez Farías (jornada ficticia en un lugar real): todo lo crítico aprobado.
   {
     const r = await requisitosDe(puerto);
-    const autor = m("Puerto Muestra").enlace_nombre!;
+    const autor = m("Gómez Farías").enlace_nombre!;
     await entregar({ jornadaId: puerto, requisitoId: r("carta_compromiso"), autor, estado: "aprobado", datos: datosCarta("Lic. Persona Ficticia", "Auditorio Municipal") });
     await entregar({ jornadaId: puerto, requisitoId: r("fotos_espacio"), autor, estado: "aprobado", foto: [186, 204, 196] });
     await entregar({ jornadaId: puerto, requisitoId: r("persona_enlace"), autor, estado: "aprobado", datos: enlace(autor) });
     await entregar({ jornadaId: puerto, requisitoId: r("logotipo"), autor, estado: "recibido", foto: [184, 51, 106] });
   }
-  // Valle de Prueba: en preparación; EIRA tiene algo por revisar.
+  // Tapalpa (jornada ficticia en un lugar real): en preparación; EIRA tiene algo por revisar.
   {
     const r = await requisitosDe(valle);
-    const autor = m("Valle de Prueba").enlace_nombre!;
+    const autor = m("Tapalpa").enlace_nombre!;
     await entregar({ jornadaId: valle, requisitoId: r("persona_enlace"), autor, estado: "recibido", datos: enlace(autor) });
   }
 

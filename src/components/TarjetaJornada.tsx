@@ -15,7 +15,7 @@ export function TarjetaJornada({ jornada, vista }: { jornada: Jornada; vista: "e
           </h3>
           <p className="text-tenue">
             {vista === "eira" ? `${jornada.programa} · ` : ""}
-            {jornada.sede} · {fechaLarga(jornada.fecha)}
+            {jornada.sede}{jornada.colonia ? `, ${jornada.colonia}` : ""} · {fechaLarga(jornada.fecha)}
             {dias >= 0 ? ` (faltan ${dias} días)` : ""}
           </p>
         </div>

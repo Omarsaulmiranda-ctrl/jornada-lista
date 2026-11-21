@@ -25,6 +25,54 @@ function texto(fd: FormData, campo: string, max = 300): string {
   return String(fd.get(campo) ?? "").trim().slice(0, max);
 }
 
+function enMexico(lat: number, lng: number): boolean {
+  return Number.isFinite(lat) && Number.isFinite(lng) && lat >= 14 && lat <= 33 && lng >= -119 && lng <= -86;
+}
+
+// --------------------------------------------------------------------------- lugares reales
+
+export type Lugar = { nombre: string; detalle: string; lat: number; lng: number };
+
+const AGENTE = "jornada-lista-demo/1.0 (prototipo educativo)";
+
+/** Busca una localidad o colonia real en OpenStreetMap (Nominatim). */
+export async function buscarLugar(consulta: string): Promise<Lugar[]> {
+  await exigirEira();
+  const q = consulta.trim().slice(0, 120);
+  if (q.length < 3) return [];
+  const url = new URL("https://nominatim.openstreetmap.org/search");
+  url.search = new URLSearchParams({ q, format: "jsonv2", countrycodes: "mx", limit: "6", "accept-language": "es" }).toString();
+  try {
+    const r = await fetch(url, { headers: { "User-Agent": AGENTE }, signal: AbortSignal.timeout(8000) });
+    if (!r.ok) return [];
+    const datos = (await r.json()) as { name?: string; display_name: string; lat: string; lon: string }[];
+    return datos
+      .map((d) => ({
+        nombre: d.name || d.display_name.split(",")[0],
+        detalle: d.display_name,
+        lat: Number(d.lat),
+        lng: Number(d.lon),
+      }))
+      .filter((l) => enMexico(l.lat, l.lng));
+  } catch {
+    return [];
+  }
+}
+
+/** Colonias y asentamientos reales de un código postal (datos públicos de GeoNames). */
+export async function coloniasPorCP(cp: string): Promise<string[]> {
+  await exigirEira();
+  if (!/^\d{5}$/.test(cp)) return [];
+  try {
+    const r = await fetch(`https://api.zippopotam.us/mx/${cp}`, { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) return [];
+    const datos = (await r.json()) as { places?: { "place name": string }[] };
+    return [...new Set((datos.places ?? []).map((p) => p["place name"]))].sort((a, b) => a.localeCompare(b, "es"));
+  } catch {
+    return [];
+  }
+}
+
 // --------------------------------------------------------------------------- acceso
 
 export async function entrarComoEira(): Promise<void> {
@@ -83,8 +131,16 @@ export async function crearJornada(fd: FormData): Promise<void> {
   }));
   if (requisitos.length === 0) throw new Error("Elija al menos un requisito.");
 
+  const lat = Number(fd.get("lat"));
+  const lng = Number(fd.get("lng"));
+  const ubicada = fd.get("lat") !== "" && fd.get("lat") !== null && enMexico(lat, lng);
+
   const id = await crearJornadaConRequisitos({
     municipioId,
+    colonia: texto(fd, "colonia", 120),
+    ubicacion: ubicada ? texto(fd, "ubicacion", 300) : "",
+    lat: ubicada ? lat : null,
+    lng: ubicada ? lng : null,
     programa: texto(fd, "programa") || "Tamizaje Rosa",
     localidad: texto(fd, "localidad"),
     sede,

@@ -7,7 +7,7 @@ Prototipo para el **Reto 2 (Coordinación institucional, cartas compromiso y doc
 - **Demo en vivo:** https://jornada-lista.vercel.app
 - **Video (2 minutos):** _pendiente_
 
-> **Solo datos ficticios.** El sistema no pide ni guarda datos de pacientes. «Villa Ejemplo», los demás municipios y todas las personas que aparecen son inventados.
+> **Jornadas y personas ficticias, lugares reales.** El sistema no pide ni guarda datos de pacientes. Todas las jornadas, los enlaces municipales y sus teléfonos son inventados. El mapa usa localidades y colonias reales del sur de Jalisco (datos públicos de OpenStreetMap); que un municipio real aparezca en la demo no significa que tenga una jornada con EIRA. «Villa Ejemplo» y «San Ficticio del Valle» no existen.
 
 ## Probarlo en un minuto
 
@@ -17,7 +17,7 @@ Abra la demo. No hay contraseñas: la portada tiene un botón por cada papel.
 | --- | --- |
 | Coordinación de EIRA | Botón «Entrar como EIRA» |
 | Enlace municipal de Villa Ejemplo | Botón «Entrar como Villa Ejemplo», o el enlace privado `/m/demo-villa-ejemplo` |
-| Otros municipios ficticios | Botones de San Ficticio del Valle, Puerto Muestra y Valle de Prueba |
+| Otros municipios de ejemplo | Botones de San Ficticio del Valle, Gómez Farías y Tapalpa |
 
 Para ver las dos partes a la vez, abra EIRA en una ventana normal y el municipio en una ventana de incógnito. Las pantallas se actualizan solas cada pocos segundos.
 
@@ -56,6 +56,8 @@ Jornada Lista convierte esa hoja de cálculo en un expediente que ven las dos pa
 | Carta compromiso desde plantilla, con cláusulas fijas | **Implementado** | El municipio solo llena campos. Se imprime o se guarda como PDF desde el navegador |
 | Sello de integridad de la carta | **Implementado** | Guarda la huella SHA-256 de las cláusulas y avisa si la plantilla cambió |
 | Tablero por municipio con semáforo y «qué impide confirmar» | **Implementado** | El semáforo se calcula con los requisitos críticos y las fechas límite |
+| Mapa interactivo de jornadas | **Implementado** | Un punto por jornada, con el color de su semáforo, qué impide confirmar y enlace al expediente |
+| Ubicación en lugares reales | **Implementado** | Al crear la jornada se busca la localidad o colonia, se afina el punto tocando el mapa y se consultan las colonias de un código postal |
 | Confirmación final de la jornada por EIRA | **Implementado** | Solo se habilita con todo lo crítico aprobado |
 | Bitácora de movimientos | **Implementado** | Solo admite inserciones |
 | Archivos privados | **Implementado** | Bucket privado; se ven con enlaces firmados de 10 minutos |
@@ -85,7 +87,7 @@ npm run dev                  # http://localhost:3000
 ```
 
 1. Cree un proyecto en [supabase.com](https://supabase.com).
-2. Ejecute `supabase/migrations/0001_esquema.sql` en el editor SQL del proyecto.
+2. Ejecute `supabase/migrations/0001_esquema.sql` y después `0002_ubicacion.sql` en el editor SQL del proyecto.
 3. Copie la URL y la llave secreta (`sb_secret_...`) a `.env.local`.
 4. Entre como EIRA y use «Reiniciar datos de demostración» para cargar los municipios de ejemplo.
 
@@ -97,7 +99,7 @@ npm run dev                  # http://localhost:3000
 | `SUPABASE_SECRET_KEY` | Llave secreta. Solo se usa en el servidor |
 | `SESSION_SECRET` | Cadena aleatoria que firma la cookie de sesión |
 
-No se necesita ningún otro servicio.
+El mapa usa tres servicios públicos que no requieren cuenta ni llave: los mosaicos de OpenStreetMap, el buscador Nominatim (OpenStreetMap) y Zippopotam (colonias por código postal, con datos de GeoNames).
 
 ## Arquitectura
 
@@ -115,7 +117,8 @@ Supabase: Postgres + Storage privado
 - **Supabase Postgres** con cinco tablas: `municipios`, `jornadas`, `requisitos`, `entregas` y `eventos`.
 - **Supabase Storage** con un bucket privado (máximo 10 MB por archivo, solo imágenes y PDF).
 - **Vercel** para el despliegue.
-- Dependencias de ejecución: `next`, `react`, `react-dom`, `@supabase/supabase-js` y `server-only`.
+- **Leaflet** con mosaicos de OpenStreetMap para el mapa.
+- Dependencias de ejecución: `next`, `react`, `react-dom`, `@supabase/supabase-js`, `leaflet` y `server-only`.
 
 ### Decisiones de diseño
 
@@ -126,6 +129,7 @@ Supabase: Postgres + Storage privado
 - **Los requisitos y la carta son configuración** (`src/lib/plantillas.ts`). Cambiar esas listas adapta el sistema a otro programa o a otra organización.
 - **El semáforo se calcula con los requisitos críticos**, no con el porcentaje general: un expediente casi completo al que le falta la carta sigue bloqueado.
 - **La revisión es por requisito, no por archivo**, como en el caso de la guía («falta una imagen»).
+- **El mapa no depende de catálogos propios.** Las coordenadas salen de OpenStreetMap y se guardan con la jornada. La cobertura de colonias en OpenStreetMap es desigual en municipios pequeños; por eso el punto se puede afinar tocando el mapa y el nombre de la colonia se puede escribir o tomar del código postal.
 - **La carta es una página lista para imprimir.** No depende de Word ni de un generador de PDF en el servidor.
 
 ## Riesgos, seguridad, operación y costos
@@ -139,6 +143,7 @@ Supabase: Postgres + Storage privado
 | La carta se toma por un documento firmado | Leyenda visible en pantalla y en el impreso; la firma autógrafa se sube como un requisito aparte |
 | Los municipios siguen respondiendo por WhatsApp y no usan el sistema | El aviso lleva el enlace directo; EIRA puede medir en la bitácora quién entra y quién no |
 | Fotos con personas identificables | El requisito lo indica («sin personas»); EIRA puede observarlas. Falta una casilla de autorización |
+| Los servicios públicos del mapa cambian sus condiciones o limitan el uso | El mapa es un complemento: el expediente funciona sin él. Para uso intensivo, contratar un proveedor de mosaicos y geocodificación |
 | La organización depende de quien construyó el prototipo | Código abierto, cuentas a nombre de EIRA, Postgres estándar exportable |
 
 ### Seguridad
@@ -170,7 +175,7 @@ No hay costo por mensajes: el aviso se abre en el WhatsApp de la persona de EIRA
 - **Conectividad:** el prototipo necesita internet. Las fotos se comprimen antes de subir para que funcionen con mala señal, y si una carga falla no se registra nada a medias. No hay modo sin conexión ni sincronización; para la preparación de una jornada, que se hace desde oficinas municipales, lo consideramos aceptable, pero debe validarse con EIRA.
 - **Privacidad:** datos mínimos (nombre, cargo y teléfono del enlace municipal), ningún dato de pacientes, permisos por municipio, archivos sin enlaces públicos y bitácora de movimientos.
 - **Operación:** ver la sección anterior.
-- **Sostenibilidad:** cinco dependencias de ejecución, todas de código abierto. Dos servicios externos (Vercel y Supabase), ambos sustituibles: la aplicación es Next.js estándar y la base es Postgres estándar.
+- **Sostenibilidad:** seis dependencias de ejecución, todas de código abierto. Dos servicios contratados (Vercel y Supabase), ambos sustituibles, y tres servicios públicos gratuitos para el mapa, cuyas condiciones de uso limitan el volumen de consultas: la aplicación es Next.js estándar y la base es Postgres estándar.
 - **Interoperabilidad:** la carta se guarda como PDF desde el navegador y los datos están en Postgres, exportables con herramientas estándar. La exportación a CSV desde la pantalla no está hecha.
 
 ## Próximos pasos para un piloto

@@ -5,6 +5,8 @@ import { listarJornadas, resumir } from "@/lib/datos";
 import { Encabezado, boton, tarjeta } from "@/components/ui";
 import { TarjetaJornada } from "@/components/TarjetaJornada";
 import { Refrescar } from "@/components/Refrescar";
+import { MapaJornadas, type PuntoMapa } from "@/components/MapaJornadas";
+import { fechaLarga } from "@/lib/fechas";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +22,20 @@ export default async function Tablero() {
   const porRevisar = jornadas.flatMap((j) => j.requisitos.filter((x) => x.estado === "recibido")).length;
   const atrasadas = conResumen.filter((x) => x.r.color === "rojo").length;
   const listas = conResumen.filter((x) => x.r.listaParaConfirmar).length;
+
+  const puntos: PuntoMapa[] = conResumen
+    .filter(({ j }) => j.lat !== null && j.lng !== null)
+    .map(({ j, r }) => ({
+      id: j.id,
+      lat: j.lat!,
+      lng: j.lng!,
+      titulo: j.colonia ? `${j.municipio.nombre} · ${j.colonia}` : j.municipio.nombre,
+      subtitulo: `${j.sede} · ${fechaLarga(j.fecha)}`,
+      etiqueta: r.etiqueta,
+      color: r.color,
+      bloqueos: r.bloqueos.map((b) => `${b.debe} debe ${b.accion}: ${b.requisito.titulo.toLowerCase()}`),
+      href: `/j/${j.id}`,
+    }));
 
   return (
     <>
@@ -50,6 +66,12 @@ export default async function Tablero() {
             <p className="text-sm text-tenue">Listas para confirmar</p>
           </div>
         </div>
+
+        {puntos.length > 0 && (
+          <div className="mt-5">
+            <MapaJornadas puntos={puntos} />
+          </div>
+        )}
 
         <div className="mt-5 space-y-3">
           {conResumen.length === 0 && (

@@ -5,6 +5,7 @@ import { db } from "@/lib/supabase";
 import { hoy, sumarDias } from "@/lib/fechas";
 import { REQUISITOS_BASE, SERVICIOS } from "@/lib/plantillas";
 import { Encabezado, boton, botonSecundario, campo, tarjeta } from "@/components/ui";
+import { ElegirUbicacion } from "@/components/ElegirUbicacion";
 
 export const dynamic = "force-dynamic";
 
@@ -67,6 +68,12 @@ export default async function NuevaJornada() {
                 ))}
               </div>
             </fieldset>
+          </section>
+
+          <section className={tarjeta}>
+            <h2 className="text-xl font-semibold">Dónde será la jornada</h2>
+            <p className="mb-3 text-sm text-tenue">Lugares reales de OpenStreetMap. Sirve para ver todas las jornadas en el mapa.</p>
+            <ElegirUbicacion />
           </section>
 
           <section className={tarjeta}>

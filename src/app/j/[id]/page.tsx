@@ -44,6 +44,7 @@ export default async function Expediente({ params }: PageProps<"/j/[id]">) {
           </div>
           <dl className="mt-3 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2">
             <Dato t="Sede" v={`${jornada.sede}${jornada.localidad ? `, ${jornada.localidad}` : ""}`} />
+            {jornada.colonia && <Dato t="Colonia o localidad" v={jornada.colonia} />}
             <Dato t="Servicios" v={jornada.servicios.join(", ") || "Por definir"} />
             <Dato t="Responsable de EIRA" v={jornada.responsable_eira} />
             <Dato t="Enlace municipal" v={jornada.municipio.enlace_nombre ?? "Por designar"} />

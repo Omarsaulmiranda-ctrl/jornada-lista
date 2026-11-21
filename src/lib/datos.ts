@@ -51,6 +51,10 @@ export type Jornada = {
   municipio_id: string;
   programa: string;
   localidad: string | null;
+  colonia: string | null;
+  ubicacion: string | null;
+  lat: number | null;
+  lng: number | null;
   sede: string;
   fecha: string;
   servicios: string[];

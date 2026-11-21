@@ -38,6 +38,13 @@ Jornada Lista convierte esa hoja de cálculo en un expediente que ven las dos pa
 5. **EIRA aprueba.** Cuando todo lo crítico está aprobado, la jornada pasa a «Lista para confirmar» y EIRA da la confirmación final.
 6. **El tablero** muestra, por municipio, qué está completo y qué impide avanzar, y a quién le toca.
 
+### Cómo se probó
+
+- El flujo completo, de crear la jornada a confirmarla, se recorrió en un navegador de escritorio contra la base de datos real.
+- En la demo pública se probaron el reinicio de datos, la creación de la jornada, la entrada del enlace municipal y la subida de fotos.
+- El equipo lo probó además desde un teléfono celular.
+- No hay pruebas automatizadas.
+
 ## Implementado y simulado
 
 | Pieza | Estado | Detalle |

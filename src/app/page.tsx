@@ -1,6 +1,4 @@
-import { redirect } from "next/navigation";
 import { entrarComoEira, entrarComoMunicipio } from "./acciones";
-import { leerSesion } from "@/lib/sesion";
 import { baseConfigurada } from "@/lib/supabase";
 import { ENLACES_DEMO } from "@/lib/operaciones";
 import { boton, botonSecundario, tarjeta } from "@/components/ui";
@@ -8,8 +6,6 @@ import { boton, botonSecundario, tarjeta } from "@/components/ui";
 export const dynamic = "force-dynamic";
 
 export default async function Portada({ searchParams }: PageProps<"/">) {
-  const sesion = baseConfigurada() ? await leerSesion() : null;
-  if (sesion) redirect(sesion.rol === "eira" ? "/eira" : "/municipio");
   const { error } = await searchParams;
 
   return (

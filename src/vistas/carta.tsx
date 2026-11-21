@@ -1,22 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { exigirSesion } from "@/lib/sesion";
+import { exigirSesion, type Rol } from "@/lib/sesion";
 import { cargarExpediente, hashPlantillaCarta } from "@/lib/datos";
 import { fechaHora, fechaLarga } from "@/lib/fechas";
 import { PLANTILLA_CARTA } from "@/lib/plantillas";
 import { BotonImprimir } from "@/components/BotonImprimir";
-
-export const dynamic = "force-dynamic";
 
 /** Dato proporcionado por el municipio: se subraya para distinguirlo del texto fijo. */
 function B({ children }: { children: React.ReactNode }) {
   return <strong className="underline decoration-rosa decoration-2 underline-offset-2">{children}</strong>;
 }
 
-export default async function Carta({ params, searchParams }: PageProps<"/j/[id]/carta">) {
-  const sesion = await exigirSesion();
-  const { id } = await params;
-  const { v } = await searchParams;
+export async function VistaCarta({ rol, id, v }: { rol: Rol; id: string; v?: string }) {
+  const sesion = await exigirSesion(rol);
   const expediente = await cargarExpediente(sesion, id);
   if (!expediente) notFound();
   const { jornada } = expediente;
@@ -33,7 +29,7 @@ export default async function Carta({ params, searchParams }: PageProps<"/j/[id]
   return (
     <main className="mx-auto max-w-3xl px-4 py-6">
       <div className="no-imprimir mb-4 flex flex-wrap items-center justify-between gap-3">
-        <Link href={`/j/${jornada.id}#carta_compromiso`} className="text-sm text-rosa underline">
+        <Link href={`/${rol}/j/${jornada.id}#carta_compromiso`} className="text-sm text-rosa underline">
           ← Volver al expediente
         </Link>
         <BotonImprimir />
@@ -56,7 +52,7 @@ export default async function Carta({ params, searchParams }: PageProps<"/j/[id]
           a través de <B>{d.dependencia}</B> y representado por <B>{d.firmante}</B>, en su carácter de{" "}
           <B>{d.cargo}</B>, manifiesta su compromiso de colaborar con EIRA Movimiento Rosa A.C. en la jornada del
           programa <B>{jornada.programa}</B>, que se llevará a cabo el <B>{fechaLarga(jornada.fecha)}</B> en{" "}
-          <B>{jornada.sede}</B>, con domicilio en <B>{d.domicilio_sede}</B>, en un horario <B>{d.horario}</B>.
+          <B>{jornada.sede}</B>{jornada.colonia ? <>, <B>{jornada.colonia}</B></> : null}, con domicilio en <B>{d.domicilio_sede}</B>, en un horario <B>{d.horario}</B>.
         </p>
         <p className="mt-3">
           Servicios previstos: <B>{jornada.servicios.join(", ") || "por definir"}</B>.

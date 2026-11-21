@@ -51,6 +51,7 @@ export function Encabezado({ sesion }: { sesion: Sesion }) {
             {sesion.rol === "eira" ? sesion.nombre : `${sesion.nombre} · ${sesion.municipio}`}
           </span>
           <form action={salir}>
+            <input type="hidden" name="rol" value={sesion.rol} />
             <button className="rounded-lg border border-borde px-3 py-1.5 hover:bg-rosa-suave">Salir</button>
           </form>
         </div>

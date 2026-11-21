@@ -2,7 +2,8 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { confirmarJornada, registrarDatos, revisarEntrega } from "@/app/acciones";
-import { exigirSesion, type Sesion } from "@/lib/sesion";
+import { exigirSesion, type Rol, type Sesion } from "@/lib/sesion";
+import { MapaJornadas } from "@/components/MapaJornadas";
 import { cargarExpediente, firmarArchivos, quienDebe, resumir, type Entrega, type Jornada, type Requisito } from "@/lib/datos";
 import { fechaCorta, fechaHora, fechaLarga, plazo } from "@/lib/fechas";
 import { PLANTILLA_CARTA, plantillaDe, type Campo } from "@/lib/plantillas";
@@ -11,11 +12,8 @@ import { Encabezado, Estado, Semaforo, boton, botonSecundario, campo, tarjeta } 
 import { SubirArchivos } from "@/components/SubirArchivos";
 import { Refrescar } from "@/components/Refrescar";
 
-export const dynamic = "force-dynamic";
-
-export default async function Expediente({ params }: PageProps<"/j/[id]">) {
-  const sesion = await exigirSesion();
-  const { id } = await params;
+export async function VistaExpediente({ rol, id }: { rol: Rol; id: string }) {
+  const sesion = await exigirSesion(rol);
   const expediente = await cargarExpediente(sesion, id);
   if (!expediente) notFound();
   const { jornada, eventos } = expediente;
@@ -28,7 +26,7 @@ export default async function Expediente({ params }: PageProps<"/j/[id]">) {
       <Encabezado sesion={sesion} />
       <Refrescar />
       <main className="mx-auto max-w-3xl px-4 py-6">
-        <Link href={esEira ? "/eira" : "/municipio"} className="text-sm text-rosa underline">
+        <Link href={`/${rol}`} className="text-sm text-rosa underline">
           ← Todas las jornadas
         </Link>
 
@@ -89,6 +87,21 @@ export default async function Expediente({ params }: PageProps<"/j/[id]">) {
             </div>
           )}
         </section>
+
+        {jornada.lat !== null && jornada.lng !== null && (
+          <div className="no-imprimir mt-4">
+            <MapaJornadas
+              puntos={[{
+                id: jornada.id, lat: jornada.lat, lng: jornada.lng,
+                titulo: jornada.colonia ? `${jornada.municipio.nombre} · ${jornada.colonia}` : jornada.municipio.nombre,
+                subtitulo: jornada.ubicacion ?? jornada.sede,
+                etiqueta: resumen.etiqueta, color: resumen.color, bloqueos: [],
+                href: `/${rol}/j/${jornada.id}`,
+              }]}
+              compacto
+            />
+          </div>
+        )}
 
         {esEira && jornada.estado !== "confirmada" && <Aviso jornada={jornada} />}
 
@@ -221,7 +234,7 @@ function TarjetaRequisito({
           <p className="text-sm font-semibold">
             Versión {ultima.version} · {ultima.autor} · {fechaHora(ultima.creado_en)}
           </p>
-          <Contenido r={r} e={ultima} jornadaId={jornada.id} urls={urls} />
+          <Contenido r={r} e={ultima} base={`/${sesion.rol}/j/${jornada.id}`} urls={urls} />
         </div>
       )}
 
@@ -272,7 +285,7 @@ function TarjetaRequisito({
                   {e.revision === "observada" ? "Observada" : e.revision === "aprobada" ? "Aprobada" : "Sin revisar"}
                 </p>
                 {e.motivo && <p>Motivo: {e.motivo}</p>}
-                <Contenido r={r} e={e} jornadaId={jornada.id} urls={urls} />
+                <Contenido r={r} e={e} base={`/${sesion.rol}/j/${jornada.id}`} urls={urls} />
               </li>
             ))}
           </ol>
@@ -285,12 +298,12 @@ function TarjetaRequisito({
 function Contenido({
   r,
   e,
-  jornadaId,
+  base,
   urls,
 }: {
   r: Requisito;
   e: Entrega;
-  jornadaId: string;
+  base: string;
   urls: Record<string, string>;
 }) {
   const campos: readonly Campo[] = r.tipo === "carta" ? PLANTILLA_CARTA.campos : (plantillaDe(r.clave)?.campos ?? []);
@@ -327,7 +340,7 @@ function Contenido({
         </dl>
       )}
       {r.tipo === "carta" && (
-        <Link href={`/j/${jornadaId}/carta?v=${e.version}`} className="inline-block text-sm font-semibold text-rosa underline">
+        <Link href={`${base}/carta?v=${e.version}`} className="inline-block text-sm font-semibold text-rosa underline">
           Ver e imprimir la carta (versión {e.version})
         </Link>
       )}

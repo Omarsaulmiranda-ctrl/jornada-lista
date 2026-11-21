@@ -7,7 +7,10 @@ export type Sesion =
   | { rol: "eira"; nombre: string }
   | { rol: "municipio"; nombre: string; municipioId: string; municipio: string };
 
-const COOKIE = "jl_sesion";
+export type Rol = Sesion["rol"];
+
+// Una cookie por papel: así EIRA y un municipio pueden estar abiertos a la vez en el mismo navegador.
+const COOKIE: Record<Rol, string> = { eira: "jl_eira", municipio: "jl_municipio" };
 
 function secreto(): string {
   const s = process.env.SESSION_SECRET;
@@ -19,8 +22,8 @@ function firmar(valor: string): string {
   return createHmac("sha256", secreto()).update(valor).digest("base64url");
 }
 
-export async function leerSesion(): Promise<Sesion | null> {
-  const cruda = (await cookies()).get(COOKIE)?.value;
+export async function leerSesion(rol: Rol): Promise<Sesion | null> {
+  const cruda = (await cookies()).get(COOKIE[rol])?.value;
   if (!cruda) return null;
   const [cuerpo, firma] = cruda.split(".");
   if (!cuerpo || !firma) return null;
@@ -29,7 +32,8 @@ export async function leerSesion(): Promise<Sesion | null> {
   const b = Buffer.from(esperada);
   if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
   try {
-    return JSON.parse(Buffer.from(cuerpo, "base64url").toString("utf8")) as Sesion;
+    const sesion = JSON.parse(Buffer.from(cuerpo, "base64url").toString("utf8")) as Sesion;
+    return sesion.rol === rol ? sesion : null;
   } catch {
     return null;
   }
@@ -37,7 +41,7 @@ export async function leerSesion(): Promise<Sesion | null> {
 
 export async function guardarSesion(sesion: Sesion): Promise<void> {
   const cuerpo = Buffer.from(JSON.stringify(sesion), "utf8").toString("base64url");
-  (await cookies()).set(COOKIE, `${cuerpo}.${firmar(cuerpo)}`, {
+  (await cookies()).set(COOKIE[sesion.rol], `${cuerpo}.${firmar(cuerpo)}`, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -46,18 +50,20 @@ export async function guardarSesion(sesion: Sesion): Promise<void> {
   });
 }
 
-export async function cerrarSesion(): Promise<void> {
-  (await cookies()).delete(COOKIE);
+export async function cerrarSesion(rol: Rol): Promise<void> {
+  (await cookies()).delete(COOKIE[rol]);
 }
 
-export async function exigirSesion(): Promise<Sesion> {
-  const sesion = await leerSesion();
+export async function exigirSesion(rol: Rol): Promise<Sesion> {
+  const sesion = await leerSesion(rol);
   if (!sesion) redirect("/");
   return sesion;
 }
 
 export async function exigirEira(): Promise<Extract<Sesion, { rol: "eira" }>> {
-  const sesion = await exigirSesion();
-  if (sesion.rol !== "eira") redirect("/municipio");
-  return sesion;
+  return (await exigirSesion("eira")) as Extract<Sesion, { rol: "eira" }>;
+}
+
+export async function exigirMunicipio(): Promise<Extract<Sesion, { rol: "municipio" }>> {
+  return (await exigirSesion("municipio")) as Extract<Sesion, { rol: "municipio" }>;
 }

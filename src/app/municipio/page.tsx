@@ -1,6 +1,7 @@
-import { redirect } from "next/navigation";
-import { exigirSesion } from "@/lib/sesion";
-import { listarJornadas } from "@/lib/datos";
+import { exigirMunicipio } from "@/lib/sesion";
+import { listarJornadas, resumir } from "@/lib/datos";
+import { fechaLarga } from "@/lib/fechas";
+import { MapaJornadas, type PuntoMapa } from "@/components/MapaJornadas";
 import { Encabezado, tarjeta } from "@/components/ui";
 import { TarjetaJornada } from "@/components/TarjetaJornada";
 import { Refrescar } from "@/components/Refrescar";
@@ -8,9 +9,22 @@ import { Refrescar } from "@/components/Refrescar";
 export const dynamic = "force-dynamic";
 
 export default async function InicioMunicipio() {
-  const sesion = await exigirSesion();
-  if (sesion.rol !== "municipio") redirect("/eira");
+  const sesion = await exigirMunicipio();
   const jornadas = await listarJornadas(sesion);
+
+  const puntos: PuntoMapa[] = jornadas
+    .filter((j) => j.lat !== null && j.lng !== null)
+    .map((j) => {
+      const r = resumir(j);
+      return {
+        id: j.id, lat: j.lat!, lng: j.lng!,
+        titulo: j.colonia ? `${j.programa} · ${j.colonia}` : j.programa,
+        subtitulo: `${j.sede} · ${fechaLarga(j.fecha)}`,
+        etiqueta: r.etiqueta, color: r.color,
+        bloqueos: r.bloqueos.map((b) => `${b.debe === "Municipio" ? "Le toca a usted" : "EIRA debe"} ${b.accion}: ${b.requisito.titulo.toLowerCase()}`),
+        href: `/municipio/j/${j.id}`,
+      };
+    });
 
   return (
     <>
@@ -19,6 +33,11 @@ export default async function InicioMunicipio() {
       <main className="mx-auto max-w-2xl px-4 py-6">
         <h1 className="text-3xl font-bold">Jornadas en {sesion.municipio}</h1>
         <p className="text-tenue">Toque una jornada para ver qué le falta entregar.</p>
+        {puntos.length > 0 && (
+          <div className="mt-5">
+            <MapaJornadas puntos={puntos} />
+          </div>
+        )}
         <div className="mt-5 space-y-3">
           {jornadas.length === 0 && (
             <p className={tarjeta}>

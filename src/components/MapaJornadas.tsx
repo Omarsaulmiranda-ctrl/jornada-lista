@@ -28,7 +28,7 @@ function linea(texto: string, clase = ""): HTMLElement {
   return p;
 }
 
-export function MapaJornadas({ puntos }: { puntos: PuntoMapa[] }) {
+export function MapaJornadas({ puntos, compacto = false }: { puntos: PuntoMapa[]; compacto?: boolean }) {
   const caja = useRef<HTMLDivElement>(null);
   const mapa = useRef<MapaLeaflet | null>(null);
   const capa = useRef<LayerGroup | null>(null);
@@ -80,7 +80,7 @@ export function MapaJornadas({ puntos }: { puntos: PuntoMapa[] }) {
       const llave = lista.map((p) => p.id).join(",");
       if (lista.length && llave !== encuadrado.current) {
         encuadrado.current = llave;
-        mapa.current.fitBounds(L.latLngBounds(lista.map((p) => [p.lat, p.lng])), { padding: [40, 40], maxZoom: 12 });
+        mapa.current.fitBounds(L.latLngBounds(lista.map((p) => [p.lat, p.lng])), { padding: [40, 40], maxZoom: lista.length === 1 ? 14 : 12 });
       }
     })();
     return () => {
@@ -98,8 +98,8 @@ export function MapaJornadas({ puntos }: { puntos: PuntoMapa[] }) {
 
   return (
     <div>
-      <div ref={caja} className="h-80 w-full overflow-hidden rounded-xl border border-borde" role="application" aria-label="Mapa de jornadas" />
-      <p className="mt-1 flex flex-wrap gap-x-4 text-sm text-tenue">
+      <div ref={caja} className={`${compacto ? "h-52" : "h-80"} w-full overflow-hidden rounded-xl border border-borde`} role="application" aria-label="Mapa de jornadas" />
+      <p className={`mt-1 flex-wrap gap-x-4 text-sm text-tenue ${compacto ? "hidden" : "flex"}`}>
         <span><span className="mr-1 inline-block h-3 w-3 rounded-full bg-rojo" />Atrasada</span>
         <span><span className="mr-1 inline-block h-3 w-3 rounded-full" style={{ background: COLOR.ambar }} />En preparación o con observaciones</span>
         <span><span className="mr-1 inline-block h-3 w-3 rounded-full bg-verde" />Lista o confirmada</span>

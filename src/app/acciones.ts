@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { BUCKET, db } from "@/lib/supabase";
-import { cerrarSesion, exigirEira, exigirSesion, guardarSesion, type Sesion } from "@/lib/sesion";
+import { cerrarSesion, exigirEira, exigirMunicipio, guardarSesion, type Sesion } from "@/lib/sesion";
 import { hashPlantillaCarta, hashToken, registrarEvento, resumir, type Archivo, type Jornada } from "@/lib/datos";
 import { crearJornadaConRequisitos, reiniciarDatosDemo } from "@/lib/operaciones";
 import { PLANTILLA_CARTA, REQUISITOS_BASE, SERVICIOS, plantillaDe } from "@/lib/plantillas";
@@ -102,13 +102,16 @@ export async function entrarComoMunicipio(fd: FormData): Promise<void> {
   redirect(ok ? "/municipio" : "/?error=enlace");
 }
 
-export async function salir(): Promise<void> {
-  await cerrarSesion();
+export async function salir(fd: FormData): Promise<void> {
+  await cerrarSesion(fd.get("rol") === "municipio" ? "municipio" : "eira");
   redirect("/");
 }
 
-export async function reiniciarDemo(): Promise<void> {
+export async function reiniciarDemo(fd: FormData): Promise<void> {
   await exigirEira();
+  // Borra todo: en un despliegue público se protege con una clave que solo conoce el equipo.
+  const clave = process.env.CLAVE_REINICIO;
+  if (clave && texto(fd, "clave", 100) !== clave) redirect("/eira?aviso=clave");
   await reiniciarDatosDemo();
   revalidatePath("/", "layout");
   redirect("/eira");
@@ -156,7 +159,7 @@ export async function crearJornada(fd: FormData): Promise<void> {
     tipo: "Jornada creada",
     detalle: `${requisitos.length} requisitos, ${requisitos.filter((r) => r.critico).length} críticos.`,
   });
-  redirect(`/j/${id}`);
+  redirect(`/eira/j/${id}`);
 }
 
 export async function confirmarJornada(fd: FormData): Promise<void> {
@@ -171,7 +174,7 @@ export async function confirmarJornada(fd: FormData): Promise<void> {
     .update({ estado: "confirmada", confirmada_en: new Date().toISOString(), confirmada_por: sesion.nombre })
     .eq("id", id);
   await registrarEvento({ jornadaId: id, sesion, tipo: "Jornada confirmada", detalle: "Validación final de EIRA." });
-  revalidatePath(`/j/${id}`);
+  revalidatePath("/", "layout");
 }
 
 // --------------------------------------------------------------------------- entregas
@@ -242,7 +245,7 @@ async function guardarEntrega(
     tipo: `Entrega recibida (versión ${version})`,
     detalle: r.titulo,
   });
-  revalidatePath(`/j/${r.jornada_id}`);
+  revalidatePath("/", "layout");
 }
 
 export type CargaPreparada =
@@ -255,7 +258,7 @@ export async function prepararCarga(
   archivos: { nombre: string; tipo: string; tamano: number }[],
 ): Promise<CargaPreparada> {
   try {
-    const sesion = await exigirSesion();
+    const sesion = await exigirMunicipio();
     const r = await requisitoPermitido(sesion, requisitoId);
     puedeEntregar(sesion, r);
     if (r.tipo !== "archivos") throw new Error("Este requisito no recibe archivos.");
@@ -286,7 +289,7 @@ export async function registrarArchivos(
   nota: string,
 ): Promise<{ ok: boolean; error?: string }> {
   try {
-    const sesion = await exigirSesion();
+    const sesion = await exigirMunicipio();
     const r = await requisitoPermitido(sesion, requisitoId);
     puedeEntregar(sesion, r);
     const carpeta = `${r.jornada_id}/${r.id}`;
@@ -307,7 +310,7 @@ export async function registrarArchivos(
 
 /** Requisitos que se entregan llenando un formulario: datos y carta compromiso. */
 export async function registrarDatos(fd: FormData): Promise<void> {
-  const sesion = await exigirSesion();
+  const sesion = await exigirMunicipio();
   const r = await requisitoPermitido(sesion, texto(fd, "requisito_id", 36));
   puedeEntregar(sesion, r);
   const campos = r.tipo === "carta" ? PLANTILLA_CARTA.campos : (plantillaDe(r.clave)?.campos ?? []);
@@ -369,5 +372,5 @@ export async function revisarEntrega(fd: FormData): Promise<void> {
     tipo: aprobada ? `Aprobado (versión ${entrega.version})` : `Observado (versión ${entrega.version})`,
     detalle: aprobada ? r.titulo : `${r.titulo}. Motivo: ${motivo}`,
   });
-  revalidatePath(`/j/${r.jornada_id}`);
+  revalidatePath("/", "layout");
 }

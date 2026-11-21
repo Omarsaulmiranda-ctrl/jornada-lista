@@ -7,7 +7,7 @@ export function TarjetaJornada({ jornada, vista }: { jornada: Jornada; vista: "e
   const r = resumir(jornada);
   const dias = r.diasParaJornada;
   return (
-    <Link href={`/j/${jornada.id}`} className={`${tarjeta} block hover:border-rosa`}>
+    <Link href={`/${vista}/j/${jornada.id}`} className={`${tarjeta} block hover:border-rosa`}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h3 className="text-xl font-semibold">

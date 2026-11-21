@@ -19,9 +19,9 @@ Abra la demo. No hay contraseñas: la portada tiene un botón por cada papel.
 | Enlace municipal de Zapotlán el Grande | Botón «Entrar como Zapotlán el Grande», o el enlace privado `/m/demo-zapotlan` |
 | Otros municipios de ejemplo | Botones de Sayula, Gómez Farías y Tapalpa |
 
-Para ver las dos partes a la vez, abra EIRA en una ventana normal y el municipio en una ventana de incógnito. Las pantallas se actualizan solas cada pocos segundos.
+Para ver las dos partes a la vez, abra EIRA en una pestaña y un municipio en otra: cada papel tiene su propia sesión y conviven en el mismo navegador. Las pantallas se actualizan solas cada pocos segundos.
 
-En el tablero de EIRA, el enlace «Reiniciar datos de demostración» borra todo y vuelve a cargar los municipios de ejemplo.
+En el tablero de EIRA, «Reiniciar datos de demostración» borra todo y vuelve a cargar los ejemplos. En la demo pública pide una clave que solo tiene el equipo, para que nadie la vacíe por accidente.
 
 ## Qué problema resuelve
 
@@ -41,7 +41,8 @@ Jornada Lista convierte esa hoja de cálculo en un expediente que ven las dos pa
 ### Cómo se probó
 
 - El flujo completo, de crear la jornada a confirmarla, se recorrió en un navegador de escritorio contra la base de datos real.
-- En la demo pública se probaron el reinicio de datos, la creación de la jornada, la entrada del enlace municipal y la subida de fotos.
+- En la demo pública se probaron el reinicio de datos, la creación de la jornada, la entrada del enlace municipal, la subida de fotos, el mapa y el buscador de lugares.
+- También se probaron las dos sesiones a la vez en un mismo navegador, la clave de reinicio, la exportación a CSV y la carta con la localidad.
 - El equipo lo probó además desde un teléfono celular.
 - No hay pruebas automatizadas.
 
@@ -56,7 +57,8 @@ Jornada Lista convierte esa hoja de cálculo en un expediente que ven las dos pa
 | Carta compromiso desde plantilla, con cláusulas fijas | **Implementado** | El municipio solo llena campos. Se imprime o se guarda como PDF desde el navegador |
 | Sello de integridad de la carta | **Implementado** | Guarda la huella SHA-256 de las cláusulas y avisa si la plantilla cambió |
 | Tablero por municipio con semáforo y «qué impide confirmar» | **Implementado** | El semáforo se calcula con los requisitos críticos y las fechas límite |
-| Mapa interactivo de jornadas | **Implementado** | Un punto por jornada, con el color de su semáforo, qué impide confirmar y enlace al expediente |
+| Mapa interactivo de jornadas | **Implementado** | En el tablero de EIRA, en la vista del municipio y en cada expediente. Un punto por jornada, con el color de su semáforo, qué impide confirmar y enlace al expediente |
+| Exportación a CSV | **Implementado** | Una fila por requisito de cada jornada, con estado, fecha límite, a quién le toca y coordenadas |
 | Ubicación en lugares reales | **Implementado** | Al crear la jornada se busca la localidad o colonia, se afina el punto tocando el mapa y se consultan las colonias de un código postal |
 | Confirmación final de la jornada por EIRA | **Implementado** | Solo se habilita con todo lo crítico aprobado |
 | Bitácora de movimientos | **Implementado** | Solo admite inserciones |
@@ -67,7 +69,7 @@ Jornada Lista convierte esa hoja de cálculo en un expediente que ven las dos pa
 | Acceso del municipio | **Parcial** | El mecanismo de enlace privado funciona; los enlaces de la demo son públicos a propósito |
 | Texto de la carta | **De ejemplo** | La plantilla oficial de EIRA no estaba entre los materiales publicados |
 | Uso sin conexión | **No implementado** | Ver «Conectividad» |
-| Firma electrónica, exportación a CSV, edición del catálogo desde la pantalla | **No implementado** | |
+| Firma electrónica y edición del catálogo de requisitos desde la pantalla | **No implementado** | |
 
 ## Límites que respeta el prototipo
 
@@ -98,6 +100,7 @@ npm run dev                  # http://localhost:3000
 | `SUPABASE_URL` | URL del proyecto de Supabase |
 | `SUPABASE_SECRET_KEY` | Llave secreta. Solo se usa en el servidor |
 | `SESSION_SECRET` | Cadena aleatoria que firma la cookie de sesión |
+| `CLAVE_REINICIO` | Opcional. Si se define, «Reiniciar datos de demostración» la pide |
 
 El mapa usa tres servicios públicos que no requieren cuenta ni llave: los mosaicos de OpenStreetMap, el buscador Nominatim (OpenStreetMap) y Zippopotam (colonias por código postal, con datos de GeoNames).
 
@@ -139,7 +142,7 @@ Supabase: Postgres + Storage privado
 | Riesgo | Mitigación propuesta |
 | --- | --- |
 | Quien tenga el enlace privado de un municipio puede entrar | En el piloto: enlaces aleatorios largos, con caducidad y revocables por EIRA; verificación por código al teléfono del enlace |
-| El acceso de EIRA es un botón sin contraseña | Cuentas individuales con correo institucional antes de cualquier uso real |
+| El acceso de EIRA es un botón sin contraseña: cualquiera puede ver y modificar la demo | Cuentas individuales con correo institucional antes de cualquier uso real. En la demo, el borrado total sí pide clave |
 | La carta se toma por un documento firmado | Leyenda visible en pantalla y en el impreso; la firma autógrafa se sube como un requisito aparte |
 | Los municipios siguen respondiendo por WhatsApp y no usan el sistema | El aviso lleva el enlace directo; EIRA puede medir en la bitácora quién entra y quién no |
 | Fotos con personas identificables | El requisito lo indica («sin personas»); EIRA puede observarlas. Falta una casilla de autorización |
@@ -176,7 +179,7 @@ No hay costo por mensajes: el aviso se abre en el WhatsApp de la persona de EIRA
 - **Privacidad:** datos mínimos (nombre, cargo y teléfono del enlace municipal), ningún dato de pacientes, permisos por municipio, archivos sin enlaces públicos y bitácora de movimientos.
 - **Operación:** ver la sección anterior.
 - **Sostenibilidad:** seis dependencias de ejecución, todas de código abierto. Dos servicios contratados (Vercel y Supabase), ambos sustituibles, y tres servicios públicos gratuitos para el mapa, cuyas condiciones de uso limitan el volumen de consultas: la aplicación es Next.js estándar y la base es Postgres estándar.
-- **Interoperabilidad:** la carta se guarda como PDF desde el navegador y los datos están en Postgres, exportables con herramientas estándar. La exportación a CSV desde la pantalla no está hecha.
+- **Interoperabilidad:** el tablero se exporta a CSV, la carta se guarda como PDF desde el navegador y los datos están en Postgres, exportables con herramientas estándar.
 
 ## Próximos pasos para un piloto
 
@@ -184,7 +187,7 @@ No hay costo por mensajes: el aviso se abre en el WhatsApp de la persona de EIRA
 2. Autenticación real para EIRA y enlaces municipales con caducidad y revocación.
 3. Probar con una jornada real en un municipio, en paralelo con la hoja de cálculo actual.
 4. Recordatorios programados, con la frecuencia y el destinatario que EIRA defina.
-5. Edición del catálogo de requisitos desde la pantalla y exportación a CSV.
+5. Edición del catálogo de requisitos desde la pantalla.
 6. Revisión de privacidad y seguridad, respaldos y acuerdo de mantenimiento.
 
 ## Preguntas abiertas y supuestos para EIRA

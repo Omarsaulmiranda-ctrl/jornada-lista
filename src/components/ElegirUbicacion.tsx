@@ -4,7 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
 import type { CircleMarker, Map as MapaLeaflet } from "leaflet";
 import { buscarLugar, coloniasPorCP, type Lugar } from "@/app/acciones";
-import { ATRIBUCION, MOSAICOS } from "./MapaJornadas";
+import { ATRIBUCION_OSCURA, MOSAICOS_OSCUROS } from "./MapaJornadas";
 
 const campo =
   "mt-1 w-full rounded-lg border border-borde bg-superficie px-3 py-2.5 text-base outline-none focus:border-rosa focus:ring-2 focus:ring-rosa-suave";
@@ -32,7 +32,7 @@ export function ElegirUbicacion() {
       const L = (await import("leaflet")).default;
       if (cancelado || !caja.current || mapa.current) return;
       mapa.current = L.map(caja.current, { scrollWheelZoom: false }).setView([19.85, -103.6], 9);
-      L.tileLayer(MOSAICOS, { attribution: ATRIBUCION, maxZoom: 18 }).addTo(mapa.current);
+      L.tileLayer(MOSAICOS_OSCUROS, { attribution: ATRIBUCION_OSCURA, maxZoom: 18, subdomains: "abc" }).addTo(mapa.current);
       // Tocar el mapa mueve el punto: así se marca la sede exacta aunque la colonia no esté en el buscador.
       mapa.current.on("click", (e) => setPunto({ lat: e.latlng.lat, lng: e.latlng.lng }));
     })();
@@ -50,7 +50,7 @@ export function ElegirUbicacion() {
       const L = (await import("leaflet")).default;
       if (!marca.current) {
         marca.current = L.circleMarker([punto.lat, punto.lng], {
-          radius: 11, color: "#ffffff", weight: 2, fillColor: "#b8336a", fillOpacity: 0.95,
+          radius: 11, color: "#ffffff", weight: 2, fillColor: "#ff5c9a", fillOpacity: 0.95,
         }).addTo(mapa.current);
       } else {
         marca.current.setLatLng([punto.lat, punto.lng]);
@@ -121,7 +121,7 @@ export function ElegirUbicacion() {
         )}
       </div>
 
-      <div ref={caja} className="h-64 w-full overflow-hidden rounded-xl border border-borde" role="application" aria-label="Mapa para ubicar la sede" />
+      <div ref={caja} className="mapa-rosa h-64 w-full overflow-hidden rounded-xl border border-borde" role="application" aria-label="Mapa para ubicar la sede" />
       <p className="text-sm text-tenue">
         {punto
           ? `Punto marcado: ${punto.lat.toFixed(5)}, ${punto.lng.toFixed(5)}. Toque el mapa para afinarlo.`

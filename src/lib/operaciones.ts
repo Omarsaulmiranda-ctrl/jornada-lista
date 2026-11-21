@@ -64,15 +64,50 @@ export async function crearJornadaConRequisitos(n: NuevaJornada): Promise<string
 }
 
 // ---------------------------------------------------------------------------
-// Datos de demostración. Todo es ficticio.
+// Datos de demostración. Los lugares son reales; las jornadas, las personas y los teléfonos son ficticios.
 // ---------------------------------------------------------------------------
 
-export const ENLACES_DEMO = [
-  { token: "demo-zapotlan", municipio: "Zapotlán el Grande" },
-  { token: "demo-sayula", municipio: "Sayula" },
-  { token: "demo-gomez-farias", municipio: "Gómez Farías" },
-  { token: "demo-tapalpa", municipio: "Tapalpa" },
+type EstadoEjemplo = "recibido" | "observado" | "aprobado";
+
+type Ejemplo = {
+  token: string;
+  municipio: string;
+  localidad: string;
+  lat: number;
+  lng: number;
+  sede: string;
+  dias: number; // días que faltan para la jornada
+  aliado?: string;
+  enlace: string;
+  cargo: string;
+  estados: Partial<Record<string, EstadoEjemplo>>;
+  motivo?: string;
+  confirmada?: boolean;
+};
+
+const EJEMPLOS: Ejemplo[] = [
+  { token: "demo-sayula", municipio: "Sayula", localidad: "Usmajac", lat: 19.8736833, lng: -103.5415196, sede: "Casa de la Cultura", dias: 12, aliado: "Agrícola Ficticia S.A.", enlace: "Mario Prueba Soto", cargo: "Director del DIF Municipal",
+    estados: { persona_enlace: "aprobado", fotos_espacio: "observado" }, motivo: "Falta la fotografía de los sanitarios." },
+  { token: "demo-atemajac", municipio: "Atemajac de Brizuela", localidad: "Cabecera municipal", lat: 20.1411118, lng: -103.7284429, sede: "Salón de Usos Múltiples", dias: 10, enlace: "Julia Ensayo Mora", cargo: "Regidora de Salud",
+    estados: { carta_compromiso: "recibido" } },
+  { token: "demo-tapalpa", municipio: "Tapalpa", localidad: "Juanacatlán", lat: 20.033651, lng: -103.6871914, sede: "Salón Ejidal", dias: 40, aliado: "Fundación Demo", enlace: "Rosa Modelo Vega", cargo: "Coordinadora de Salud",
+    estados: { persona_enlace: "recibido" } },
+  { token: "demo-tuxpan", municipio: "Tuxpan", localidad: "Cabecera municipal", lat: 19.5563523, lng: -103.3759867, sede: "Auditorio del DIF", dias: 33, enlace: "Pedro Simulado Ríos", cargo: "Director de Salud Municipal",
+    estados: { carta_compromiso: "aprobado", persona_enlace: "aprobado", fotos_espacio: "observado" }, motivo: "Las fotografías no muestran el área de exploración." },
+  { token: "demo-zapotiltic", municipio: "Zapotiltic", localidad: "Cabecera municipal", lat: 19.6260743, lng: -103.4164682, sede: "Casa de Salud", dias: 28, enlace: "Ana Muestra León", cargo: "Enlace de Salud Municipal",
+    estados: { carta_compromiso: "recibido", fotos_espacio: "recibido", persona_enlace: "aprobado" } },
+  { token: "demo-gomez-farias", municipio: "Gómez Farías", localidad: "San Sebastián del Sur", lat: 19.7935613, lng: -103.4749503, sede: "Auditorio Municipal", dias: 25, enlace: "Elena Demo Castillo", cargo: "Regidora de Salud",
+    estados: { carta_compromiso: "aprobado", fotos_espacio: "aprobado", persona_enlace: "aprobado", logotipo: "recibido" } },
+  { token: "demo-tamazula", municipio: "Tamazula de Gordiano", localidad: "Cabecera municipal", lat: 19.6750778, lng: -103.2540002, sede: "Centro Comunitario", dias: 20, aliado: "Ingenio de Ejemplo", enlace: "Luis Ficción Campos", cargo: "Director del DIF Municipal",
+    estados: { carta_compromiso: "aprobado", fotos_espacio: "aprobado", persona_enlace: "aprobado", logotipo: "aprobado", apoyo_convocatoria: "aprobado" }, confirmada: true },
+  { token: "demo-amacueca", municipio: "Amacueca", localidad: "Cabecera municipal", lat: 20.0113787, lng: -103.5999442, sede: "Casa Ejidal", dias: 45, enlace: "Sofía Prototipo Luna", cargo: "Enlace municipal",
+    estados: {} },
 ];
+
+// Zapotlán el Grande queda sin jornada: es el municipio donde se crea una en vivo durante la demostración.
+const MUNICIPIO_EN_VIVO = { token: "demo-zapotlan", municipio: "Zapotlán el Grande", enlace: "Laura Ejemplo Ruiz", cargo: "Enlace de Salud Municipal" };
+
+export const ENLACES_DEMO = [MUNICIPIO_EN_VIVO, ...EJEMPLOS].map((e) => ({ token: e.token, municipio: e.municipio }));
 
 const EIRA = "Coordinación EIRA (demo)";
 
@@ -104,113 +139,104 @@ function pngLiso(ancho: number, alto: number, [r, g, b]: [number, number, number
 async function vaciarBucket(): Promise<void> {
   const almacen = db().storage.from(BUCKET);
   const { data: jornadas } = await almacen.list("", { limit: 1000 });
-  for (const j of jornadas ?? []) {
-    const { data: reqs } = await almacen.list(j.name, { limit: 1000 });
-    for (const r of reqs ?? []) {
-      const { data: archivos } = await almacen.list(`${j.name}/${r.name}`, { limit: 1000 });
-      const rutas = (archivos ?? []).map((a) => `${j.name}/${r.name}/${a.name}`);
-      if (rutas.length) await almacen.remove(rutas);
+  await Promise.all(
+    (jornadas ?? []).map(async (j) => {
+      const { data: reqs } = await almacen.list(j.name, { limit: 1000 });
+      for (const r of reqs ?? []) {
+        const { data: archivos } = await almacen.list(`${j.name}/${r.name}`, { limit: 1000 });
+        const rutas = (archivos ?? []).map((a) => `${j.name}/${r.name}/${a.name}`);
+        if (rutas.length) await almacen.remove(rutas);
+      }
+    }),
+  );
+}
+
+const FOTO = pngLiso(480, 320, [214, 170, 190]);
+
+async function cargarEjemplo(e: Ejemplo, municipioId: string, dia: string): Promise<void> {
+  const base = db();
+  const jornadaId = await crearJornadaConRequisitos({
+    municipioId,
+    programa: "Tamizaje Rosa",
+    localidad: e.localidad,
+    colonia: e.localidad === "Cabecera municipal" ? e.municipio : e.localidad,
+    ubicacion: `${e.localidad === "Cabecera municipal" ? e.municipio : `${e.localidad}, ${e.municipio}`}, Jalisco, México`,
+    lat: e.lat,
+    lng: e.lng,
+    sede: e.sede,
+    fecha: sumarDias(dia, e.dias),
+    servicios: ["Papanicolaou", "Ultrasonido de mama", "Valoración nutricional"],
+    responsableEira: "Coordinación EIRA",
+    aliado: e.aliado ?? "",
+    requisitos: REQUISITOS_BASE.map((r) => ({ clave: r.clave, critico: r.critico })),
+  });
+  const { data: requisitos } = await base.from("requisitos").select("id,clave,titulo,tipo").eq("jornada_id", jornadaId);
+  const eventos: { jornada_id: string; requisito_id?: string; actor: string; rol: string; tipo: string; detalle: string }[] = [
+    { jornada_id: jornadaId, actor: EIRA, rol: "eira", tipo: "Jornada creada", detalle: `${e.municipio}, ${e.sede}` },
+  ];
+
+  for (const r of requisitos ?? []) {
+    const estado = e.estados[r.clave];
+    if (!estado) continue;
+    const archivos = [];
+    let datos: Record<string, string> | null = null;
+    if (r.tipo === "archivos") {
+      const ruta = `${jornadaId}/${r.id}/v1-ejemplo.png`;
+      await base.storage.from(BUCKET).upload(ruta, FOTO, { contentType: "image/png", upsert: true });
+      archivos.push({ ruta, nombre: "foto-de-ejemplo.png" });
+    } else if (r.tipo === "carta") {
+      datos = {
+        firmante: "Lic. Persona Ficticia", cargo: "Presidencia Municipal", dependencia: "DIF Municipal",
+        domicilio_sede: "Calle Ficticia 100, Centro", horario: "de 8:00 a 15:00 horas",
+        plantilla_version: PLANTILLA_CARTA.version, plantilla_hash: hashPlantillaCarta(),
+      };
+    } else if (r.clave === "persona_enlace") {
+      datos = { nombre: e.enlace, cargo: e.cargo, telefono: "3410000000" };
+    } else {
+      datos = { medios: "Perifoneo y redes del ayuntamiento", meta: "120" };
     }
+    const revisada = estado !== "recibido";
+    await base.from("entregas").insert({
+      requisito_id: r.id, version: 1, archivos, datos, autor: e.enlace,
+      revision: estado === "aprobado" ? "aprobada" : estado === "observado" ? "observada" : "en_revision",
+      motivo: estado === "observado" ? (e.motivo ?? "Falta información.") : null,
+      revisor: revisada ? EIRA : null,
+      revisado_en: revisada ? new Date().toISOString() : null,
+    });
+    await base.from("requisitos").update({ estado }).eq("id", r.id);
+    eventos.push({ jornada_id: jornadaId, requisito_id: r.id, actor: e.enlace, rol: "municipio", tipo: "Entrega recibida (versión 1)", detalle: r.titulo });
+    if (estado === "aprobado") eventos.push({ jornada_id: jornadaId, requisito_id: r.id, actor: EIRA, rol: "eira", tipo: "Aprobado (versión 1)", detalle: r.titulo });
+    if (estado === "observado") eventos.push({ jornada_id: jornadaId, requisito_id: r.id, actor: EIRA, rol: "eira", tipo: "Observado (versión 1)", detalle: `${r.titulo}. Motivo: ${e.motivo ?? ""}` });
   }
+
+  if (e.confirmada) {
+    await base.from("jornadas").update({ estado: "confirmada", confirmada_en: new Date().toISOString(), confirmada_por: EIRA }).eq("id", jornadaId);
+    eventos.push({ jornada_id: jornadaId, actor: EIRA, rol: "eira", tipo: "Jornada confirmada", detalle: "Validación final de EIRA." });
+  }
+  await base.from("eventos").insert(eventos);
 }
 
 export async function reiniciarDatosDemo(): Promise<void> {
   const base = db();
   await vaciarBucket();
   // Borrar municipios elimina en cascada jornadas, requisitos, entregas y eventos.
-  const { error: eBorrar } = await base
-    .from("municipios")
-    .delete()
-    .neq("id", "00000000-0000-0000-0000-000000000000");
+  const { error: eBorrar } = await base.from("municipios").delete().neq("id", "00000000-0000-0000-0000-000000000000");
   if (eBorrar) throw new Error(eBorrar.message);
 
   const { data: municipios, error } = await base
     .from("municipios")
-    .insert([
-      { nombre: "Zapotlán el Grande", enlace_nombre: "Laura Ejemplo Ruiz", enlace_cargo: "Enlace de Salud Municipal", enlace_telefono: "3410000001", token_hash: hashToken("demo-zapotlan") },
-      { nombre: "Sayula", enlace_nombre: "Mario Prueba Soto", enlace_cargo: "Director del DIF Municipal", enlace_telefono: "3410000002", token_hash: hashToken("demo-sayula") },
-      { nombre: "Gómez Farías", enlace_nombre: "Elena Demo Castillo", enlace_cargo: "Regidora de Salud", enlace_telefono: "3410000003", token_hash: hashToken("demo-gomez-farias") },
-      { nombre: "Tapalpa", enlace_nombre: "Rosa Modelo Vega", enlace_cargo: "Coordinadora de Salud", enlace_telefono: "3410000004", token_hash: hashToken("demo-tapalpa") },
-    ])
-    .select("id,nombre,enlace_nombre");
+    .insert(
+      [MUNICIPIO_EN_VIVO, ...EJEMPLOS].map((e, i) => ({
+        nombre: e.municipio,
+        enlace_nombre: e.enlace,
+        enlace_cargo: e.cargo,
+        enlace_telefono: `34100000${String(i + 1).padStart(2, "0")}`,
+        token_hash: hashToken(e.token),
+      })),
+    )
+    .select("id,nombre");
   if (error) throw new Error(error.message);
-  const m = (nombre: string) => municipios!.find((x) => x.nombre === nombre)!;
 
   const dia = hoy();
-  const todos = REQUISITOS_BASE.map((r) => ({ clave: r.clave, critico: r.critico }));
-  const comun = { programa: "Tamizaje Rosa", servicios: ["Papanicolaou", "Ultrasonido de mama", "Valoración nutricional"], responsableEira: "Coordinación EIRA", requisitos: todos };
-
-  const sanFicticio = await crearJornadaConRequisitos({ ...comun, municipioId: m("Sayula").id, localidad: "Usmajac", colonia: "Usmajac", ubicacion: "Usmajac, Sayula, Región Sur, Jalisco, México", lat: 19.8736833, lng: -103.5415196, sede: "Casa de la Cultura", fecha: sumarDias(dia, 12), aliado: "Agrícola Ficticia S.A." });
-  const puerto = await crearJornadaConRequisitos({ ...comun, municipioId: m("Gómez Farías").id, localidad: "San Sebastián del Sur", colonia: "San Sebastián del Sur", ubicacion: "San Sebastián del Sur, Gómez Farías, Región Sur, Jalisco, México", lat: 19.7935613, lng: -103.4749503, sede: "Auditorio Municipal", fecha: sumarDias(dia, 25), aliado: "" });
-  const valle = await crearJornadaConRequisitos({ ...comun, municipioId: m("Tapalpa").id, localidad: "Juanacatlán", colonia: "Juanacatlán", ubicacion: "Juanacatlán, Tapalpa, Región Sur, Jalisco, México", lat: 20.033651, lng: -103.6871914, sede: "Salón Ejidal", fecha: sumarDias(dia, 40), aliado: "Fundación Demo" });
-
-  const requisitosDe = async (jornadaId: string) => {
-    const { data } = await base.from("requisitos").select("id,clave").eq("jornada_id", jornadaId);
-    return (clave: string) => data!.find((r) => r.clave === clave)!.id as string;
-  };
-
-  const entregar = async (o: {
-    jornadaId: string;
-    requisitoId: string;
-    autor: string;
-    estado: "recibido" | "observado" | "aprobado";
-    datos?: Record<string, string>;
-    foto?: [number, number, number];
-    motivo?: string;
-  }) => {
-    const archivos = [];
-    if (o.foto) {
-      const ruta = `${o.jornadaId}/${o.requisitoId}/v1-ejemplo.png`;
-      await base.storage.from(BUCKET).upload(ruta, pngLiso(480, 320, o.foto), { contentType: "image/png", upsert: true });
-      archivos.push({ ruta, nombre: "foto-de-ejemplo.png" });
-    }
-    const revisada = o.estado !== "recibido";
-    await base.from("entregas").insert({
-      requisito_id: o.requisitoId,
-      version: 1,
-      archivos,
-      datos: o.datos ?? null,
-      autor: o.autor,
-      revision: o.estado === "aprobado" ? "aprobada" : o.estado === "observado" ? "observada" : "en_revision",
-      motivo: o.motivo ?? null,
-      revisor: revisada ? EIRA : null,
-      revisado_en: revisada ? new Date().toISOString() : null,
-    });
-    await base.from("requisitos").update({ estado: o.estado }).eq("id", o.requisitoId);
-  };
-
-  const datosCarta = (firmante: string, sede: string) => ({
-    firmante, cargo: "Presidencia Municipal", dependencia: "DIF Municipal", domicilio_sede: `${sede}, calle Ficticia 100`, horario: "de 8:00 a 15:00 horas",
-    plantilla_version: PLANTILLA_CARTA.version, plantilla_hash: hashPlantillaCarta(),
-  });
-  const enlace = (nombre: string) => ({ nombre, cargo: "Enlace municipal", telefono: "3410000000" });
-
-  // Sayula (jornada ficticia en un lugar real): atrasada. La carta venció y las fotos tienen una observación.
-  {
-    const r = await requisitosDe(sanFicticio);
-    const autor = m("Sayula").enlace_nombre!;
-    await entregar({ jornadaId: sanFicticio, requisitoId: r("persona_enlace"), autor, estado: "aprobado", datos: enlace(autor) });
-    await entregar({ jornadaId: sanFicticio, requisitoId: r("fotos_espacio"), autor, estado: "observado", foto: [214, 196, 178], motivo: "Falta la fotografía de los sanitarios." });
-  }
-  // Gómez Farías (jornada ficticia en un lugar real): todo lo crítico aprobado.
-  {
-    const r = await requisitosDe(puerto);
-    const autor = m("Gómez Farías").enlace_nombre!;
-    await entregar({ jornadaId: puerto, requisitoId: r("carta_compromiso"), autor, estado: "aprobado", datos: datosCarta("Lic. Persona Ficticia", "Auditorio Municipal") });
-    await entregar({ jornadaId: puerto, requisitoId: r("fotos_espacio"), autor, estado: "aprobado", foto: [186, 204, 196] });
-    await entregar({ jornadaId: puerto, requisitoId: r("persona_enlace"), autor, estado: "aprobado", datos: enlace(autor) });
-    await entregar({ jornadaId: puerto, requisitoId: r("logotipo"), autor, estado: "recibido", foto: [184, 51, 106] });
-  }
-  // Tapalpa (jornada ficticia en un lugar real): en preparación; EIRA tiene algo por revisar.
-  {
-    const r = await requisitosDe(valle);
-    const autor = m("Tapalpa").enlace_nombre!;
-    await entregar({ jornadaId: valle, requisitoId: r("persona_enlace"), autor, estado: "recibido", datos: enlace(autor) });
-  }
-
-  await base.from("eventos").insert(
-    [sanFicticio, puerto, valle].map((jornada_id) => ({
-      jornada_id, actor: "Sistema", rol: "sistema", tipo: "Datos de ejemplo", detalle: "Expediente cargado con datos ficticios de demostración.",
-    })),
-  );
+  await Promise.all(EJEMPLOS.map((e) => cargarEjemplo(e, municipios!.find((m) => m.nombre === e.municipio)!.id, dia)));
 }

@@ -7,7 +7,7 @@ Prototipo para el **Reto 2 (Coordinación institucional, cartas compromiso y doc
 - **Demo en vivo:** https://jornada-lista.vercel.app
 - **Video (2 minutos):** _pendiente_
 
-> **Jornadas y personas ficticias, lugares reales.** El sistema no pide ni guarda datos de pacientes. Todas las jornadas, los enlaces municipales y sus teléfonos son inventados. El mapa usa localidades y colonias reales del sur de Jalisco (datos públicos de OpenStreetMap); que un municipio real aparezca en la demo no significa que tenga una jornada con EIRA. «Villa Ejemplo» y «San Ficticio del Valle» no existen.
+> **Jornadas y personas ficticias, lugares reales.** El sistema no pide ni guarda datos de pacientes. Todas las jornadas, los enlaces municipales y sus teléfonos son inventados. El mapa usa localidades y colonias reales del sur de Jalisco (datos públicos de OpenStreetMap); que un municipio real aparezca en la demo no significa que tenga una jornada con EIRA. «Villa Ejemplo» es el municipio ficticio del caso oficial de la guía; su jornada se ubica en una localidad real al crearla.
 
 ## Probarlo en un minuto
 
@@ -17,7 +17,7 @@ Abra la demo. No hay contraseñas: la portada tiene un botón por cada papel.
 | --- | --- |
 | Coordinación de EIRA | Botón «Entrar como EIRA» |
 | Enlace municipal de Villa Ejemplo | Botón «Entrar como Villa Ejemplo», o el enlace privado `/m/demo-villa-ejemplo` |
-| Otros municipios de ejemplo | Botones de San Ficticio del Valle, Gómez Farías y Tapalpa |
+| Otros municipios de ejemplo | Botones de Sayula, Gómez Farías y Tapalpa |
 
 Para ver las dos partes a la vez, abra EIRA en una ventana normal y el municipio en una ventana de incógnito. Las pantallas se actualizan solas cada pocos segundos.
 

@@ -69,7 +69,7 @@ export async function crearJornadaConRequisitos(n: NuevaJornada): Promise<string
 
 export const ENLACES_DEMO = [
   { token: "demo-villa-ejemplo", municipio: "Villa Ejemplo" },
-  { token: "demo-san-ficticio", municipio: "San Ficticio del Valle" },
+  { token: "demo-sayula", municipio: "Sayula" },
   { token: "demo-gomez-farias", municipio: "Gómez Farías" },
   { token: "demo-tapalpa", municipio: "Tapalpa" },
 ];
@@ -128,7 +128,7 @@ export async function reiniciarDatosDemo(): Promise<void> {
     .from("municipios")
     .insert([
       { nombre: "Villa Ejemplo", enlace_nombre: "Laura Ejemplo Ruiz", enlace_cargo: "Enlace de Salud Municipal", enlace_telefono: "3410000001", token_hash: hashToken("demo-villa-ejemplo") },
-      { nombre: "San Ficticio del Valle", enlace_nombre: "Mario Prueba Soto", enlace_cargo: "Director del DIF Municipal", enlace_telefono: "3410000002", token_hash: hashToken("demo-san-ficticio") },
+      { nombre: "Sayula", enlace_nombre: "Mario Prueba Soto", enlace_cargo: "Director del DIF Municipal", enlace_telefono: "3410000002", token_hash: hashToken("demo-sayula") },
       { nombre: "Gómez Farías", enlace_nombre: "Elena Demo Castillo", enlace_cargo: "Regidora de Salud", enlace_telefono: "3410000003", token_hash: hashToken("demo-gomez-farias") },
       { nombre: "Tapalpa", enlace_nombre: "Rosa Modelo Vega", enlace_cargo: "Coordinadora de Salud", enlace_telefono: "3410000004", token_hash: hashToken("demo-tapalpa") },
     ])
@@ -140,7 +140,7 @@ export async function reiniciarDatosDemo(): Promise<void> {
   const todos = REQUISITOS_BASE.map((r) => ({ clave: r.clave, critico: r.critico }));
   const comun = { programa: "Tamizaje Rosa", servicios: ["Papanicolaou", "Ultrasonido de mama", "Valoración nutricional"], responsableEira: "Coordinación EIRA", requisitos: todos };
 
-  const sanFicticio = await crearJornadaConRequisitos({ ...comun, municipioId: m("San Ficticio del Valle").id, localidad: "Cabecera municipal", colonia: "Ubicación de ejemplo", ubicacion: "Punto de ejemplo en la región Sur de Jalisco", lat: 19.95, lng: -103.42, sede: "Casa de la Cultura", fecha: sumarDias(dia, 12), aliado: "Agrícola Ficticia S.A." });
+  const sanFicticio = await crearJornadaConRequisitos({ ...comun, municipioId: m("Sayula").id, localidad: "Usmajac", colonia: "Usmajac", ubicacion: "Usmajac, Sayula, Región Sur, Jalisco, México", lat: 19.8736833, lng: -103.5415196, sede: "Casa de la Cultura", fecha: sumarDias(dia, 12), aliado: "Agrícola Ficticia S.A." });
   const puerto = await crearJornadaConRequisitos({ ...comun, municipioId: m("Gómez Farías").id, localidad: "San Sebastián del Sur", colonia: "San Sebastián del Sur", ubicacion: "San Sebastián del Sur, Gómez Farías, Región Sur, Jalisco, México", lat: 19.7935613, lng: -103.4749503, sede: "Auditorio Municipal", fecha: sumarDias(dia, 25), aliado: "" });
   const valle = await crearJornadaConRequisitos({ ...comun, municipioId: m("Tapalpa").id, localidad: "Juanacatlán", colonia: "Juanacatlán", ubicacion: "Juanacatlán, Tapalpa, Región Sur, Jalisco, México", lat: 20.033651, lng: -103.6871914, sede: "Salón Ejidal", fecha: sumarDias(dia, 40), aliado: "Fundación Demo" });
 
@@ -185,10 +185,10 @@ export async function reiniciarDatosDemo(): Promise<void> {
   });
   const enlace = (nombre: string) => ({ nombre, cargo: "Enlace municipal", telefono: "3410000000" });
 
-  // San Ficticio: atrasada. La carta venció y las fotos tienen una observación.
+  // Sayula (jornada ficticia en un lugar real): atrasada. La carta venció y las fotos tienen una observación.
   {
     const r = await requisitosDe(sanFicticio);
-    const autor = m("San Ficticio del Valle").enlace_nombre!;
+    const autor = m("Sayula").enlace_nombre!;
     await entregar({ jornadaId: sanFicticio, requisitoId: r("persona_enlace"), autor, estado: "aprobado", datos: enlace(autor) });
     await entregar({ jornadaId: sanFicticio, requisitoId: r("fotos_espacio"), autor, estado: "observado", foto: [214, 196, 178], motivo: "Falta la fotografía de los sanitarios." });
   }

@@ -91,7 +91,7 @@ export function SubirArchivos({
           accept="image/*,application/pdf"
           disabled={ocupado}
           onChange={(e) => setArchivos(Array.from(e.target.files ?? []))}
-          className="mt-1 block w-full rounded-lg border border-dashed border-rosa bg-rosa-suave p-3 text-base file:mr-3 file:rounded-lg file:border-0 file:bg-rosa file:px-3 file:py-2 file:font-semibold file:text-white"
+          className="mt-1 block w-full rounded-2xl border-2 border-dashed border-rosa/50 bg-rosa-suave p-4 text-base file:mr-3 file:rounded-full file:border-0 file:bg-rosa file:px-4 file:py-2 file:font-semibold file:text-white"
         />
       </label>
       {archivos.length > 0 && (
@@ -110,13 +110,13 @@ export function SubirArchivos({
       <label className="block text-sm">
         <span className="font-semibold">Nota para EIRA (opcional)</span>
         <input value={nota} onChange={(e) => setNota(e.target.value)} maxLength={300} disabled={ocupado}
-          className="mt-1 w-full rounded-lg border border-borde bg-superficie px-3 py-2 text-base" />
+          className="mt-1 w-full rounded-xl border border-borde bg-superficie px-3 py-2 text-base" />
       </label>
       <button
         type="button"
         onClick={enviar}
         disabled={ocupado || archivos.length === 0}
-        className="inline-flex w-full items-center justify-center rounded-lg bg-rosa px-4 py-3 font-semibold text-white hover:bg-rosa-fuerte disabled:opacity-50 sm:w-auto"
+        className="inline-flex w-full items-center justify-center rounded-lg bg-rosa px-5 py-3 font-bold text-white hover:bg-vino disabled:opacity-50 sm:w-auto"
       >
         {estado ?? `Enviar a EIRA${archivos.length ? ` (${archivos.length})` : ""}`}
       </button>

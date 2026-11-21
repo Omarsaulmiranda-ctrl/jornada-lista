@@ -4,30 +4,33 @@ import { exigirEira } from "@/lib/sesion";
 import { db } from "@/lib/supabase";
 import { hoy, sumarDias } from "@/lib/fechas";
 import { REQUISITOS_BASE, SERVICIOS } from "@/lib/plantillas";
-import { Encabezado, boton, botonSecundario, campo, tarjeta } from "@/components/ui";
+import { Encabezado, boton, botonSecundario, campo, eyebrow, tarjeta } from "@/components/ui";
 import { ElegirUbicacion } from "@/components/ElegirUbicacion";
 
 export const dynamic = "force-dynamic";
 
 export default async function NuevaJornada() {
   const sesion = await exigirEira();
-  const { data: municipios } = await db().from("municipios").select("id,nombre").order("nombre");
+  const { data: municipios } = await db().from("municipios").select("id,nombre,enlace_nombre").order("nombre");
   const inicial = municipios?.find((m) => m.nombre === "Zapotlán el Grande");
 
   return (
     <>
       <Encabezado sesion={sesion} />
       <main className="mx-auto max-w-2xl px-4 py-6">
-        <h1 className="text-3xl font-bold">Crear jornada</h1>
+        <Link href="/eira" className="text-sm font-semibold text-rosa hover:text-vino">← Tablero</Link>
+        <p className={`${eyebrow} mt-4`}>Nueva jornada</p>
+        <h1 className="mt-1 text-3xl font-extrabold">Crear jornada</h1>
         <p className="text-tenue">El municipio recibirá su lista de requisitos en cuanto la guarde.</p>
 
         <form action={crearJornada} className="mt-5 space-y-5">
           <section className={`${tarjeta} space-y-4`}>
             <label className="block">
-              <span className="font-semibold">Municipio</span>
+              <span className="font-semibold">Municipio y su responsable</span>
+              <span className="block text-sm text-tenue">El responsable municipal es el enlace registrado para ese municipio.</span>
               <select name="municipio_id" required defaultValue={inicial?.id} className={campo}>
                 {(municipios ?? []).map((m) => (
-                  <option key={m.id} value={m.id}>{m.nombre}</option>
+                  <option key={m.id} value={m.id}>{m.nombre} — responsable: {m.enlace_nombre ?? "por designar"}</option>
                 ))}
               </select>
             </label>
@@ -62,7 +65,7 @@ export default async function NuevaJornada() {
               <div className="mt-1 grid gap-1 sm:grid-cols-2">
                 {SERVICIOS.map((s, i) => (
                   <label key={s} className="flex items-center gap-2">
-                    <input type="checkbox" name="servicios" value={s} defaultChecked={i !== 2} className="h-4 w-4" />
+                    <input type="checkbox" name="servicios" value={s} defaultChecked={i !== 2} className="h-4 w-4 accent-rosa" />
                     {s}
                   </label>
                 ))}
@@ -71,29 +74,29 @@ export default async function NuevaJornada() {
           </section>
 
           <section className={tarjeta}>
-            <h2 className="text-xl font-semibold">Dónde será la jornada</h2>
+            <h2 className="text-xl font-extrabold">Dónde será la jornada</h2>
             <p className="mb-3 text-sm text-tenue">Lugares reales de OpenStreetMap. Sirve para ver todas las jornadas en el mapa.</p>
             <ElegirUbicacion />
           </section>
 
           <section className={tarjeta}>
-            <h2 className="text-xl font-semibold">Requisitos para este municipio</h2>
+            <h2 className="text-xl font-extrabold">Requisitos para este municipio</h2>
             <p className="text-sm text-tenue">
-              Los requisitos críticos impiden confirmar la jornada. La fecha límite se calcula a partir de la fecha de la jornada.
+              Los requisitos obligatorios impiden confirmar la jornada; los opcionales no. La fecha límite se calcula a partir de la fecha de la jornada.
             </p>
             <div className="mt-3 divide-y divide-borde">
               {REQUISITOS_BASE.map((r) => (
                 <div key={r.clave} className="flex flex-wrap items-center justify-between gap-2 py-3">
                   <label className="flex items-start gap-2">
-                    <input type="checkbox" name={`req_${r.clave}`} defaultChecked className="mt-1.5 h-4 w-4" />
+                    <input type="checkbox" name={`req_${r.clave}`} defaultChecked className="mt-1.5 h-4 w-4 accent-rosa" />
                     <span>
                       <span className="font-semibold">{r.titulo}</span>
                       <span className="block text-sm text-tenue">Límite: {r.diasAntes} días antes de la jornada</span>
                     </span>
                   </label>
                   <label className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" name={`crit_${r.clave}`} defaultChecked={r.critico} className="h-4 w-4" />
-                    Crítico
+                    <input type="checkbox" name={`crit_${r.clave}`} defaultChecked={r.critico} className="h-4 w-4 accent-rosa" />
+                    Obligatorio
                   </label>
                 </div>
               ))}

@@ -7,7 +7,7 @@ export default function NoEncontrado() {
       <p className="mt-3 text-tenue">
         Puede que el expediente ya no exista o que no tenga permiso para verlo.
       </p>
-      <Link href="/" className="mt-6 inline-block rounded-lg bg-rosa px-4 py-2.5 font-semibold text-white hover:bg-rosa-fuerte">
+      <Link href="/" className="mt-6 inline-block rounded-lg bg-rosa px-5 py-2.5 font-bold text-white hover:bg-vino">
         Ir al inicio
       </Link>
     </main>

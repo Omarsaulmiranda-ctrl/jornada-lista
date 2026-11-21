@@ -1,13 +1,13 @@
 "use client";
 
-export function BotonImprimir() {
+export function BotonImprimir({ texto = "Imprimir o guardar como PDF" }: { texto?: string }) {
   return (
     <button
       type="button"
       onClick={() => window.print()}
-      className="inline-flex items-center justify-center rounded-lg bg-rosa px-4 py-2.5 font-semibold text-white hover:bg-rosa-fuerte"
+      className="inline-flex items-center justify-center rounded-lg bg-rosa px-5 py-2.5 font-bold text-white hover:bg-vino"
     >
-      Imprimir o guardar como PDF
+      {texto}
     </button>
   );
 }

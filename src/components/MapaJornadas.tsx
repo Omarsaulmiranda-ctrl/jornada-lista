@@ -3,6 +3,7 @@
 import "leaflet/dist/leaflet.css";
 import { useEffect, useRef } from "react";
 import type { LayerGroup, Map as MapaLeaflet } from "leaflet";
+import { enlaceMaps } from "@/lib/mapas";
 
 export type PuntoMapa = {
   id: string;
@@ -16,7 +17,7 @@ export type PuntoMapa = {
   href: string;
 };
 
-const COLOR = { verde: "#1f7a4d", ambar: "#c98a00", rojo: "#a12525" };
+const COLOR = { verde: "#6f9c76", ambar: "#d9a21b", rojo: "#a12525" };
 export const MOSAICOS = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 export const ATRIBUCION = '&copy; colaboradores de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 
@@ -52,7 +53,7 @@ export function MapaJornadas({ puntos, compacto = false }: { puntos: PuntoMapa[]
         globo.style.minWidth = "200px";
         globo.append(
           linea(p.titulo, "font-weight:700;font-size:15px;"),
-          linea(p.subtitulo, "color:#6b5560;"),
+          linea(p.subtitulo, "color:#6b6b6b;"),
           linea(p.etiqueta, `font-weight:700;color:${COLOR[p.color]};`),
         );
         if (p.bloqueos.length) {
@@ -62,8 +63,14 @@ export function MapaJornadas({ puntos, compacto = false }: { puntos: PuntoMapa[]
         const enlace = document.createElement("a");
         enlace.href = p.href;
         enlace.textContent = "Abrir expediente →";
-        enlace.style.cssText = "display:inline-block;margin-top:6px;font-weight:600;color:#b8336a;";
-        globo.append(enlace);
+        enlace.style.cssText = "display:inline-block;margin-top:6px;font-weight:600;color:#b7426c;";
+        const maps = document.createElement("a");
+        maps.href = enlaceMaps(p.lat, p.lng);
+        maps.target = "_blank";
+        maps.rel = "noopener noreferrer";
+        maps.textContent = "Abrir en Google Maps";
+        maps.style.cssText = "display:inline-block;margin-top:6px;margin-left:12px;font-weight:600;color:#7d3b3b;";
+        globo.append(enlace, maps);
 
         L.circleMarker([p.lat, p.lng], {
           radius: 11,
@@ -98,11 +105,11 @@ export function MapaJornadas({ puntos, compacto = false }: { puntos: PuntoMapa[]
 
   return (
     <div>
-      <div ref={caja} className={`${compacto ? "h-52" : "h-80"} w-full overflow-hidden rounded-xl border border-borde`} role="application" aria-label="Mapa de jornadas" />
+      <div ref={caja} className={`${compacto ? "h-52" : "h-80 lg:h-[28rem]"} w-full overflow-hidden rounded-xl border border-borde`} role="application" aria-label="Mapa de jornadas" />
       <p className={`mt-1 flex-wrap gap-x-4 text-sm text-tenue ${compacto ? "hidden" : "flex"}`}>
         <span><span className="mr-1 inline-block h-3 w-3 rounded-full bg-rojo" />Atrasada</span>
         <span><span className="mr-1 inline-block h-3 w-3 rounded-full" style={{ background: COLOR.ambar }} />En preparación o con observaciones</span>
-        <span><span className="mr-1 inline-block h-3 w-3 rounded-full bg-verde" />Lista o confirmada</span>
+        <span><span className="mr-1 inline-block h-3 w-3 rounded-full bg-verde-marca" />Lista o confirmada</span>
         <span>Lugares reales; jornadas ficticias de demostración.</span>
       </p>
     </div>

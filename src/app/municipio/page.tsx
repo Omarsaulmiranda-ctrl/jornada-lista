@@ -31,13 +31,9 @@ export default async function InicioMunicipio() {
       <Encabezado sesion={sesion} />
       <Refrescar segundos={5} />
       <main className="mx-auto max-w-2xl px-4 py-6">
-        <h1 className="text-3xl font-bold">Jornadas en {sesion.municipio}</h1>
-        <p className="text-tenue">Toque una jornada para ver qué le falta entregar.</p>
-        {puntos.length > 0 && (
-          <div className="mt-5">
-            <MapaJornadas puntos={puntos} />
-          </div>
-        )}
+        <p className="text-xs font-bold uppercase tracking-[0.16em] text-rosa">Enlace municipal</p>
+        <h1 className="mt-1 text-3xl font-extrabold">Jornadas en {sesion.municipio}</h1>
+        <p className="mt-1 text-tenue">Toque una jornada para ver qué le falta entregar.</p>
         <div className="mt-5 space-y-3">
           {jornadas.length === 0 && (
             <p className={tarjeta}>
@@ -48,6 +44,11 @@ export default async function InicioMunicipio() {
             <TarjetaJornada key={j.id} jornada={j} vista="municipio" />
           ))}
         </div>
+        {puntos.length > 0 && (
+          <div className="mt-6">
+            <MapaJornadas puntos={puntos} />
+          </div>
+        )}
       </main>
     </>
   );

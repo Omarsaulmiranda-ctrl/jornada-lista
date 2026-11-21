@@ -1,6 +1,6 @@
 "use server";
 
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { BUCKET, db } from "@/lib/supabase";
@@ -75,8 +75,24 @@ export async function coloniasPorCP(cp: string): Promise<string[]> {
 
 // --------------------------------------------------------------------------- acceso
 
-export async function entrarComoEira(): Promise<void> {
-  // Simulado: en el piloto, la coordinación de EIRA entra con su cuenta institucional.
+// Compara en tiempo constante (sobre la huella SHA-256, para no filtrar la longitud).
+function igualSeguro(a: string, b: string): boolean {
+  const ha = createHash("sha256").update(a).digest();
+  const hb = createHash("sha256").update(b).digest();
+  return timingSafeEqual(ha, hb);
+}
+
+const pausa = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+export async function entrarComoEira(fd: FormData): Promise<void> {
+  // Contraseña verificada en el servidor contra EIRA_CONTRASENA. Si falta la variable, nadie entra.
+  // En el piloto: cuenta institucional por persona, con segundo factor.
+  const esperada = process.env.EIRA_CONTRASENA ?? "";
+  const dada = texto(fd, "contrasena", 200);
+  if (!esperada || !dada || !igualSeguro(dada, esperada)) {
+    await pausa(800); // frena intentos repetidos
+    redirect("/?error=contrasena");
+  }
   await guardarSesion({ rol: "eira", nombre: "Coordinación EIRA (demo)" });
   redirect("/eira");
 }
@@ -98,8 +114,10 @@ export async function iniciarSesionMunicipio(token: string): Promise<boolean> {
 }
 
 export async function entrarComoMunicipio(fd: FormData): Promise<void> {
-  const ok = await iniciarSesionMunicipio(texto(fd, "token", 100));
-  redirect(ok ? "/municipio" : "/?error=enlace");
+  const codigo = texto(fd, "codigo", 100);
+  const ok = codigo ? await iniciarSesionMunicipio(codigo) : false;
+  if (!ok) await pausa(800);
+  redirect(ok ? "/municipio" : "/?error=codigo");
 }
 
 export async function salir(fd: FormData): Promise<void> {
@@ -157,7 +175,7 @@ export async function crearJornada(fd: FormData): Promise<void> {
     jornadaId: id,
     sesion,
     tipo: "Jornada creada",
-    detalle: `${requisitos.length} requisitos, ${requisitos.filter((r) => r.critico).length} críticos.`,
+    detalle: `${requisitos.length} requisitos, ${requisitos.filter((r) => r.critico).length} obligatorios.`,
   });
   redirect(`/eira/j/${id}`);
 }
@@ -168,7 +186,7 @@ export async function confirmarJornada(fd: FormData): Promise<void> {
   const { data } = await db().from("jornadas").select("*, requisitos(*)").eq("id", id).maybeSingle();
   if (!data) throw new Error("La jornada no existe.");
   const resumen = resumir({ ...(data as Jornada), municipio: {} as Jornada["municipio"] });
-  if (!resumen.listaParaConfirmar) throw new Error("Aún hay requisitos críticos sin aprobar.");
+  if (!resumen.listaParaConfirmar) throw new Error("Aún hay requisitos obligatorios sin aprobar.");
   await db()
     .from("jornadas")
     .update({ estado: "confirmada", confirmada_en: new Date().toISOString(), confirmada_por: sesion.nombre })

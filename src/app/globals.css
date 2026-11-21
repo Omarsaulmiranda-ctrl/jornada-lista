@@ -1,21 +1,29 @@
 @import "tailwindcss";
 
+/* Identidad tomada de eiraac.org: vino #7d3b3b, rosa #b7426c, ciruela #6a2b51,
+   rosa del logo #e88d8d, rosas claros #ffd7de / #ffebee, verde #6f9c76.
+   Tipografías: Montserrat (texto) y M PLUS Rounded 1c (títulos). */
 :root {
-  --fondo: #fdf7f9;
+  --fondo: #f6f5f4;
   --superficie: #ffffff;
-  --texto: #2a1a22;
-  --tenue: #6b5560;
-  --borde: #ecd9e1;
-  --rosa: #b8336a;
-  --rosa-fuerte: #8f2450;
-  --rosa-suave: #fbe6ee;
-  --verde: #1f7a4d;
-  --verde-suave: #e3f4ea;
+  --texto: #2e2e2e;
+  --tenue: #6b6b6b;
+  --borde: #e3dfdf;
+  --vino: #7d3b3b;
+  --ciruela: #6a2b51;
+  --rosa: #b7426c;
+  --rosa-fuerte: #7d3b3b;
+  --rosa-logo: #e88d8d;
+  --rosa-claro: #ffd7de;
+  --rosa-suave: #ffebee;
+  --verde: #3f6f48;
+  --verde-marca: #6f9c76;
+  --verde-suave: #e9f2ea;
   --ambar: #8a5a00;
-  --ambar-suave: #fff1d1;
+  --ambar-suave: #fff3dc;
   --rojo: #a12525;
-  --rojo-suave: #fde4e4;
-  --gris-suave: #f0ecee;
+  --rojo-suave: #fde6e6;
+  --gris-suave: #f1efee;
 }
 
 @theme inline {
@@ -24,25 +32,53 @@
   --color-texto: var(--texto);
   --color-tenue: var(--tenue);
   --color-borde: var(--borde);
+  --color-vino: var(--vino);
+  --color-ciruela: var(--ciruela);
   --color-rosa: var(--rosa);
   --color-rosa-fuerte: var(--rosa-fuerte);
+  --color-rosa-logo: var(--rosa-logo);
+  --color-rosa-claro: var(--rosa-claro);
   --color-rosa-suave: var(--rosa-suave);
   --color-verde: var(--verde);
+  --color-verde-marca: var(--verde-marca);
   --color-verde-suave: var(--verde-suave);
   --color-ambar: var(--ambar);
   --color-ambar-suave: var(--ambar-suave);
   --color-rojo: var(--rojo);
   --color-rojo-suave: var(--rojo-suave);
   --color-gris-suave: var(--gris-suave);
-  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-sans: var(--font-montserrat), system-ui, sans-serif;
+  --font-display: var(--font-redonda), var(--font-montserrat), system-ui, sans-serif;
 }
 
 body {
   background: var(--fondo);
   color: var(--texto);
   font-family: var(--font-sans);
-  font-size: 17px;
-  line-height: 1.5;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+/* En capa base para que las utilidades (text-white, etc.) puedan sobreescribirlo. */
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    color: var(--vino);
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Foco de teclado siempre visible. */
+:focus-visible {
+  outline: 3px solid var(--rosa);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.cifras {
+  font-variant-numeric: tabular-nums;
 }
 
 @media print {
@@ -52,4 +88,15 @@ body {
   body {
     background: #fff;
   }
+}
+
+/* Mapa base claro y teñido de rosa pastel (mismo criterio que el CRM):
+   los mosaicos pasan a gris tenue y dejan ver el fondo rosa del contenedor,
+   así el único color fuerte del mapa es el de los puntos. */
+.leaflet-container {
+  background: #ffc9d6 !important; /* leaflet.css carga después y pone #ddd */
+}
+.leaflet-tile-pane {
+  filter: grayscale(1) brightness(1.08);
+  opacity: 0.6;
 }

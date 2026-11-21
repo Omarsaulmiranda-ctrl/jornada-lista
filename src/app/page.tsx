@@ -1,23 +1,19 @@
-import { baseConfigurada, db } from "@/lib/supabase";
+import { redirect } from "next/navigation";
+import { entrarComoEira, entrarComoMunicipio } from "./acciones";
+import { leerSesion } from "@/lib/sesion";
+import { baseConfigurada } from "@/lib/supabase";
+import { ENLACES_DEMO } from "@/lib/operaciones";
+import { boton, botonSecundario, tarjeta } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 
-async function estadoDeLaBase(): Promise<{ ok: boolean; texto: string }> {
-  if (!baseConfigurada()) {
-    return { ok: false, texto: "Base de datos sin configurar (falta .env.local)" };
-  }
-  const { count, error } = await db()
-    .from("jornadas")
-    .select("id", { count: "exact", head: true });
-  if (error) return { ok: false, texto: `Error de conexión: ${error.message}` };
-  return { ok: true, texto: `Base de datos conectada · ${count ?? 0} jornadas` };
-}
-
-export default async function Portada() {
-  const base = await estadoDeLaBase();
+export default async function Portada({ searchParams }: PageProps<"/">) {
+  const sesion = baseConfigurada() ? await leerSesion() : null;
+  if (sesion) redirect(sesion.rol === "eira" ? "/eira" : "/municipio");
+  const { error } = await searchParams;
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-12">
+    <main className="mx-auto max-w-3xl px-4 py-10">
       <p className="text-sm font-semibold uppercase tracking-wide text-rosa">
         EIRA Movimiento Rosa · Reto 2
       </p>
@@ -27,31 +23,49 @@ export default async function Portada() {
         confirma hasta que lo crítico está aprobado, y siempre se ve quién debe qué.
       </p>
 
+      {!baseConfigurada() && (
+        <p className="mt-6 rounded-lg bg-ambar-suave p-3 text-ambar">
+          Falta configurar la base de datos. Revise el archivo README.
+        </p>
+      )}
+      {error === "enlace" && (
+        <p role="alert" className="mt-6 rounded-lg bg-rojo-suave p-3 text-rojo">
+          Ese enlace no es válido o ya no está vigente. Pida uno nuevo a la coordinación de EIRA.
+        </p>
+      )}
+
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        <section className="rounded-xl border border-borde bg-superficie p-5">
-          <h2 className="text-lg font-semibold">Coordinación de EIRA</h2>
+        <section className={tarjeta}>
+          <h2 className="text-xl font-semibold">Coordinación de EIRA</h2>
           <p className="mt-1 text-tenue">
-            Crea jornadas, revisa lo que entrega cada municipio y ve qué impide
-            avanzar.
+            Crea jornadas, revisa lo que entrega cada municipio y ve qué impide avanzar.
           </p>
-          <p className="mt-4 text-sm text-tenue">Acceso en construcción.</p>
+          <form action={entrarComoEira} className="mt-4">
+            <button className={`${boton} w-full`}>Entrar como EIRA</button>
+          </form>
         </section>
-        <section className="rounded-xl border border-borde bg-superficie p-5">
-          <h2 className="text-lg font-semibold">Enlace municipal</h2>
+
+        <section className={tarjeta}>
+          <h2 className="text-xl font-semibold">Enlace municipal</h2>
           <p className="mt-1 text-tenue">
-            Ve su lista de requisitos, llena la carta compromiso y sube sus
-            documentos desde el celular.
+            Ve su lista de requisitos, llena la carta y sube sus documentos desde el celular.
           </p>
-          <p className="mt-4 text-sm text-tenue">Acceso en construcción.</p>
+          <div className="mt-4 space-y-2">
+            {ENLACES_DEMO.map((e, i) => (
+              <form action={entrarComoMunicipio} key={e.token}>
+                <input type="hidden" name="token" value={e.token} />
+                <button className={`${i === 0 ? boton : botonSecundario} w-full`}>
+                  Entrar como {e.municipio}
+                </button>
+              </form>
+            ))}
+          </div>
         </section>
       </div>
 
-      <p
-        className={`mt-8 inline-block rounded-full px-3 py-1 text-sm ${
-          base.ok ? "bg-verde-suave text-verde" : "bg-ambar-suave text-ambar"
-        }`}
-      >
-        {base.texto}
+      <p className="mt-8 text-sm text-tenue">
+        Accesos de demostración. En un piloto, cada enlace municipal recibe por WhatsApp
+        un enlace privado y la coordinación de EIRA entra con su cuenta institucional.
       </p>
     </main>
   );

@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export default async function NuevaJornada() {
   const sesion = await exigirEira();
   const { data: municipios } = await db().from("municipios").select("id,nombre").order("nombre");
-  const villa = municipios?.find((m) => m.nombre === "Villa Ejemplo");
+  const inicial = municipios?.find((m) => m.nombre === "Zapotlán el Grande");
 
   return (
     <>
@@ -25,7 +25,7 @@ export default async function NuevaJornada() {
           <section className={`${tarjeta} space-y-4`}>
             <label className="block">
               <span className="font-semibold">Municipio</span>
-              <select name="municipio_id" required defaultValue={villa?.id} className={campo}>
+              <select name="municipio_id" required defaultValue={inicial?.id} className={campo}>
                 {(municipios ?? []).map((m) => (
                   <option key={m.id} value={m.id}>{m.nombre}</option>
                 ))}

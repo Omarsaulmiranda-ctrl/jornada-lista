@@ -68,7 +68,7 @@ export async function crearJornadaConRequisitos(n: NuevaJornada): Promise<string
 // ---------------------------------------------------------------------------
 
 export const ENLACES_DEMO = [
-  { token: "demo-villa-ejemplo", municipio: "Villa Ejemplo" },
+  { token: "demo-zapotlan", municipio: "Zapotlán el Grande" },
   { token: "demo-sayula", municipio: "Sayula" },
   { token: "demo-gomez-farias", municipio: "Gómez Farías" },
   { token: "demo-tapalpa", municipio: "Tapalpa" },
@@ -127,7 +127,7 @@ export async function reiniciarDatosDemo(): Promise<void> {
   const { data: municipios, error } = await base
     .from("municipios")
     .insert([
-      { nombre: "Villa Ejemplo", enlace_nombre: "Laura Ejemplo Ruiz", enlace_cargo: "Enlace de Salud Municipal", enlace_telefono: "3410000001", token_hash: hashToken("demo-villa-ejemplo") },
+      { nombre: "Zapotlán el Grande", enlace_nombre: "Laura Ejemplo Ruiz", enlace_cargo: "Enlace de Salud Municipal", enlace_telefono: "3410000001", token_hash: hashToken("demo-zapotlan") },
       { nombre: "Sayula", enlace_nombre: "Mario Prueba Soto", enlace_cargo: "Director del DIF Municipal", enlace_telefono: "3410000002", token_hash: hashToken("demo-sayula") },
       { nombre: "Gómez Farías", enlace_nombre: "Elena Demo Castillo", enlace_cargo: "Regidora de Salud", enlace_telefono: "3410000003", token_hash: hashToken("demo-gomez-farias") },
       { nombre: "Tapalpa", enlace_nombre: "Rosa Modelo Vega", enlace_cargo: "Coordinadora de Salud", enlace_telefono: "3410000004", token_hash: hashToken("demo-tapalpa") },

@@ -89,7 +89,7 @@ export default async function Tablero() {
             Reiniciar datos de demostración
           </button>
           <span className="ml-2 text-sm text-tenue">
-            (borra todo y vuelve a cargar los municipios ficticios)
+            (borra todo y vuelve a cargar las jornadas de ejemplo)
           </span>
         </form>
       </main>

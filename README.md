@@ -7,7 +7,7 @@ Prototipo para el **Reto 2 (Coordinación institucional, cartas compromiso y doc
 - **Demo en vivo:** https://jornada-lista.vercel.app
 - **Video (2 minutos):** _pendiente_
 
-> **Jornadas y personas ficticias, lugares reales.** El sistema no pide ni guarda datos de pacientes. Todas las jornadas, los enlaces municipales y sus teléfonos son inventados. El mapa usa localidades y colonias reales del sur de Jalisco (datos públicos de OpenStreetMap); que un municipio real aparezca en la demo no significa que tenga una jornada con EIRA. «Villa Ejemplo» es el municipio ficticio del caso oficial de la guía; su jornada se ubica en una localidad real al crearla.
+> **Jornadas y personas ficticias, lugares reales.** El sistema no pide ni guarda datos de pacientes. Todas las jornadas, los enlaces municipales y sus teléfonos son inventados. El mapa usa localidades y colonias reales del sur de Jalisco (datos públicos de OpenStreetMap); que un municipio real aparezca en la demo no significa que tenga una jornada con EIRA. El caso práctico de la guía de EIRA (que ella llama «Villa Ejemplo») se demuestra aquí con el municipio real de Zapotlán el Grande.
 
 ## Probarlo en un minuto
 
@@ -16,7 +16,7 @@ Abra la demo. No hay contraseñas: la portada tiene un botón por cada papel.
 | Papel | Cómo entrar |
 | --- | --- |
 | Coordinación de EIRA | Botón «Entrar como EIRA» |
-| Enlace municipal de Villa Ejemplo | Botón «Entrar como Villa Ejemplo», o el enlace privado `/m/demo-villa-ejemplo` |
+| Enlace municipal de Zapotlán el Grande | Botón «Entrar como Zapotlán el Grande», o el enlace privado `/m/demo-zapotlan` |
 | Otros municipios de ejemplo | Botones de Sayula, Gómez Farías y Tapalpa |
 
 Para ver las dos partes a la vez, abra EIRA en una ventana normal y el municipio en una ventana de incógnito. Las pantallas se actualizan solas cada pocos segundos.
@@ -29,9 +29,9 @@ Hoy EIRA prepara cada jornada con Excel o Google Sheets. Pide a cada municipio u
 
 Jornada Lista convierte esa hoja de cálculo en un expediente que ven las dos partes. Los estados usan las palabras de la guía: **pendiente, recibido, observado, aprobado**.
 
-## Flujo demostrado: el caso «Villa Ejemplo» de la guía
+## Flujo demostrado: el caso práctico de la guía
 
-1. **EIRA crea la jornada** en Villa Ejemplo y elige qué requisitos pide y cuáles son críticos.
+1. **EIRA crea la jornada** en Zapotlán el Grande, la ubica en el mapa y elige qué requisitos pide y cuáles son críticos.
 2. **El enlace municipal recibe su lista de requisitos**, llena los datos de la carta compromiso y sube fotografías del espacio desde el celular.
 3. **EIRA observa que falta una imagen** y pide la corrección. El motivo es obligatorio.
 4. **El municipio la adjunta** como versión 2. La versión 1 se conserva en el historial.
@@ -207,7 +207,7 @@ Preguntas:
 
 ## Cómo lo construimos
 
-Con Claude Code como agente de programación. Primero se analizó la guía de EIRA y se escribió el plan; después el agente escribió el código, creó la base de datos y probó el caso «Villa Ejemplo» de punta a punta en el navegador antes de desplegar.
+Con Claude Code como agente de programación. Primero se analizó la guía de EIRA y se escribió el plan; después el agente escribió el código, creó la base de datos y probó el caso práctico de la guía de punta a punta en el navegador antes de desplegar.
 
 ## Licencia
 

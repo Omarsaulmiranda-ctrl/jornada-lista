@@ -16,8 +16,8 @@ Abra la demo. No hay contraseñas: la portada tiene un botón por cada papel.
 | Papel | Cómo entrar |
 | --- | --- |
 | Coordinación de EIRA | Botón «Entrar como EIRA» |
-| Enlace municipal de Zapotlán el Grande | Elija el municipio en la portada y pulse «Entrar como enlace municipal», o use el enlace privado `/m/demo-zapotlan` |
-| Otros municipios de ejemplo | En la misma lista: Sayula, Atemajac de Brizuela, Tapalpa, Tuxpan, Zapotiltic, Gómez Farías, Tamazula de Gordiano y Amacueca. Cada uno tiene una jornada ficticia en un estado distinto |
+| Enlace municipal de Zapotlán el Grande | Botón «Entrar como Zapotlán el Grande», o el enlace privado `/m/demo-zapotlan` |
+| Otros municipios de ejemplo | Botones de Sayula, Gómez Farías y Tapalpa |
 
 Para ver las dos partes a la vez, abra EIRA en una pestaña y un municipio en otra: cada papel tiene su propia sesión y conviven en el mismo navegador. Las pantallas se actualizan solas cada pocos segundos.
 
@@ -57,7 +57,6 @@ Jornada Lista convierte esa hoja de cálculo en un expediente que ven las dos pa
 | Carta compromiso desde plantilla, con cláusulas fijas | **Implementado** | El municipio solo llena campos. Se imprime o se guarda como PDF desde el navegador |
 | Sello de integridad de la carta | **Implementado** | Guarda la huella SHA-256 de las cláusulas y avisa si la plantilla cambió |
 | Tablero por municipio con semáforo y «qué impide confirmar» | **Implementado** | El semáforo se calcula con los requisitos críticos y las fechas límite |
-| Monitor de jornadas | **Implementado** | Pantalla principal de EIRA: mapa a pantalla completa con un punto que late por jornada (más rápido si está atrasada), una tarjeta «En foco» que recorre las jornadas y la actividad reciente tomada de la bitácora. Se actualiza cada 5 segundos |
 | Mapa interactivo de jornadas | **Implementado** | En el tablero de EIRA, en la vista del municipio y en cada expediente. Un punto por jornada, con el color de su semáforo, qué impide confirmar y enlace al expediente |
 | Exportación a CSV | **Implementado** | Una fila por requisito de cada jornada, con estado, fecha límite, a quién le toca y coordenadas |
 | Ubicación en lugares reales | **Implementado** | Al crear la jornada se busca la localidad o colonia, se afina el punto tocando el mapa y se consultan las colonias de un código postal |
@@ -121,7 +120,7 @@ Supabase: Postgres + Storage privado
 - **Supabase Postgres** con cinco tablas: `municipios`, `jornadas`, `requisitos`, `entregas` y `eventos`.
 - **Supabase Storage** con un bucket privado (máximo 10 MB por archivo, solo imágenes y PDF).
 - **Vercel** para el despliegue.
-- **Leaflet** con mosaicos de OpenStreetMap para el mapa. El tono rosa oscuro del monitor es un filtro CSS sobre esos mismos mosaicos, sin proveedor adicional.
+- **Leaflet** con mosaicos de OpenStreetMap para el mapa.
 - Dependencias de ejecución: `next`, `react`, `react-dom`, `@supabase/supabase-js`, `leaflet` y `server-only`.
 
 ### Decisiones de diseño
@@ -175,7 +174,7 @@ No hay costo por mensajes: el aviso se abre en el WhatsApp de la persona de EIRA
 
 ## Requisitos transversales de la guía de EIRA
 
-- **Accesibilidad:** la coordinación de EIRA usa un tema oscuro de monitoreo; la vista municipal se mantiene clara y de alto contraste, y está pensada para celular. Las animaciones se desactivan si el dispositivo pide reducir movimiento. Letra grande, tareas nombradas con verbos, cuatro estados dichos con texto y no solo con color, y trato de «usted».
+- **Accesibilidad:** la vista municipal está pensada para celular. Letra grande, tareas nombradas con verbos, cuatro estados dichos con texto y no solo con color, y trato de «usted».
 - **Conectividad:** el prototipo necesita internet. Las fotos se comprimen antes de subir para que funcionen con mala señal, y si una carga falla no se registra nada a medias. No hay modo sin conexión ni sincronización; para la preparación de una jornada, que se hace desde oficinas municipales, lo consideramos aceptable, pero debe validarse con EIRA.
 - **Privacidad:** datos mínimos (nombre, cargo y teléfono del enlace municipal), ningún dato de pacientes, permisos por municipio, archivos sin enlaces públicos y bitácora de movimientos.
 - **Operación:** ver la sección anterior.

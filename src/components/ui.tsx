@@ -41,7 +41,7 @@ export function Semaforo({ resumen }: { resumen: Resumen }) {
 export function Encabezado({ sesion }: { sesion: Sesion }) {
   const inicio = sesion.rol === "eira" ? "/eira" : "/municipio";
   return (
-    <header className="no-imprimir relative z-20 border-b border-borde bg-superficie">
+    <header className="no-imprimir border-b border-borde bg-superficie">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-2 px-4 py-3">
         <Link href={inicio} className="text-lg font-bold text-rosa-fuerte">
           Jornada Lista
@@ -66,4 +66,4 @@ export const botonSecundario =
   "inline-flex items-center justify-center rounded-lg border border-borde bg-superficie px-4 py-2.5 font-semibold hover:bg-rosa-suave";
 export const campo =
   "mt-1 w-full rounded-lg border border-borde bg-superficie px-3 py-2.5 text-base outline-none focus:border-rosa focus:ring-2 focus:ring-rosa-suave";
-export const tarjeta = "vidrio rounded-xl border border-borde bg-superficie p-4 sm:p-5";
+export const tarjeta = "rounded-xl border border-borde bg-superficie p-4 sm:p-5";

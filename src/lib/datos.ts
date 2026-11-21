@@ -219,24 +219,3 @@ export async function registrarEvento(e: {
     detalle: e.detalle ?? null,
   });
 }
-
-export type Actividad = { id: number; tipo: string; detalle: string | null; municipio: string; rol: string; creado_en: string };
-
-/** Últimos movimientos de todas las jornadas, para el monitor de EIRA. */
-export async function actividadReciente(limite = 12): Promise<Actividad[]> {
-  const { data } = await db()
-    .from("eventos")
-    .select("id,tipo,detalle,rol,creado_en, jornada:jornadas(municipio:municipios(nombre))")
-    .order("id", { ascending: false })
-    .limit(limite);
-  return ((data ?? []) as unknown as (Omit<Actividad, "municipio"> & { jornada: { municipio: { nombre: string } } | null })[]).map((e) => ({
-    id: e.id, tipo: e.tipo, detalle: e.detalle, rol: e.rol, creado_en: e.creado_en,
-    municipio: e.jornada?.municipio?.nombre ?? "",
-  }));
-}
-
-/** Solo posición y color de cada jornada: es lo único que se muestra en la portada, sin sesión. */
-export async function puntosPublicos(): Promise<{ id: string; lat: number; lng: number; color: Resumen["color"] }[]> {
-  const { data } = await db().from("jornadas").select("*, requisitos(*)").not("lat", "is", null);
-  return ((data ?? []) as Jornada[]).map((j) => ({ id: j.id, lat: j.lat!, lng: j.lng!, color: resumir(j).color }));
-}

@@ -99,7 +99,6 @@ export async function VistaExpediente({ rol, id }: { rol: Rol; id: string }) {
                 href: `/${rol}/j/${jornada.id}`,
               }]}
               compacto
-              oscuro={rol === "eira"}
             />
           </div>
         )}

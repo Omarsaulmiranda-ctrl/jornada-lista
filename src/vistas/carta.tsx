@@ -27,7 +27,7 @@ export async function VistaCarta({ rol, id, v }: { rol: Rol; id: string; v?: str
   const integra = d.plantilla_hash === huellaActual;
 
   return (
-    <main className="tema-claro mx-auto max-w-3xl px-4 py-6">
+    <main className="mx-auto max-w-3xl px-4 py-6">
       <div className="no-imprimir mb-4 flex flex-wrap items-center justify-between gap-3">
         <Link href={`/${rol}/j/${jornada.id}#carta_compromiso`} className="text-sm text-rosa underline">
           ← Volver al expediente

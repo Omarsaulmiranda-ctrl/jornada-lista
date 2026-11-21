@@ -18,10 +18,6 @@ export type PuntoMapa = {
 
 const COLOR = { verde: "#1f7a4d", ambar: "#c98a00", rojo: "#a12525" };
 export const MOSAICOS = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
-// El mapa oscuro usa los mismos mosaicos públicos de OpenStreetMap; el tono rosa y oscuro se da con un filtro CSS
-// (clase .mapa-rosa), así no hace falta ningún proveedor con llave.
-export const MOSAICOS_OSCUROS = MOSAICOS;
-export const ATRIBUCION_OSCURA = '&copy; colaboradores de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 export const ATRIBUCION = '&copy; colaboradores de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 
 function linea(texto: string, clase = ""): HTMLElement {
@@ -32,7 +28,7 @@ function linea(texto: string, clase = ""): HTMLElement {
   return p;
 }
 
-export function MapaJornadas({ puntos, compacto = false, oscuro = false }: { puntos: PuntoMapa[]; compacto?: boolean; oscuro?: boolean }) {
+export function MapaJornadas({ puntos, compacto = false }: { puntos: PuntoMapa[]; compacto?: boolean }) {
   const caja = useRef<HTMLDivElement>(null);
   const mapa = useRef<MapaLeaflet | null>(null);
   const capa = useRef<LayerGroup | null>(null);
@@ -46,7 +42,7 @@ export function MapaJornadas({ puntos, compacto = false, oscuro = false }: { pun
       if (cancelado || !caja.current) return;
       if (!mapa.current) {
         mapa.current = L.map(caja.current, { scrollWheelZoom: false }).setView([19.85, -103.6], 9);
-        L.tileLayer(oscuro ? MOSAICOS_OSCUROS : MOSAICOS, { attribution: oscuro ? ATRIBUCION_OSCURA : ATRIBUCION, maxZoom: 18, subdomains: "abc" }).addTo(mapa.current);
+        L.tileLayer(MOSAICOS, { attribution: ATRIBUCION, maxZoom: 18 }).addTo(mapa.current);
         capa.current = L.layerGroup().addTo(mapa.current);
       }
       capa.current!.clearLayers();
@@ -56,7 +52,7 @@ export function MapaJornadas({ puntos, compacto = false, oscuro = false }: { pun
         globo.style.minWidth = "200px";
         globo.append(
           linea(p.titulo, "font-weight:700;font-size:15px;"),
-          linea(p.subtitulo, "opacity:.75;"),
+          linea(p.subtitulo, "color:#6b5560;"),
           linea(p.etiqueta, `font-weight:700;color:${COLOR[p.color]};`),
         );
         if (p.bloqueos.length) {
@@ -90,7 +86,7 @@ export function MapaJornadas({ puntos, compacto = false, oscuro = false }: { pun
     return () => {
       cancelado = true;
     };
-  }, [firma, oscuro]);
+  }, [firma]);
 
   useEffect(
     () => () => {
@@ -102,7 +98,7 @@ export function MapaJornadas({ puntos, compacto = false, oscuro = false }: { pun
 
   return (
     <div>
-      <div ref={caja} className={`${oscuro ? "mapa-rosa " : ""}${compacto ? "h-52" : "h-80"} w-full overflow-hidden rounded-xl border border-borde`} role="application" aria-label="Mapa de jornadas" />
+      <div ref={caja} className={`${compacto ? "h-52" : "h-80"} w-full overflow-hidden rounded-xl border border-borde`} role="application" aria-label="Mapa de jornadas" />
       <p className={`mt-1 flex-wrap gap-x-4 text-sm text-tenue ${compacto ? "hidden" : "flex"}`}>
         <span><span className="mr-1 inline-block h-3 w-3 rounded-full bg-rojo" />Atrasada</span>
         <span><span className="mr-1 inline-block h-3 w-3 rounded-full" style={{ background: COLOR.ambar }} />En preparación o con observaciones</span>

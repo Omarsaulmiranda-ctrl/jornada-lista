@@ -23,8 +23,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="es-MX" className={`${geistSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <div className="flex-1">{children}</div>
-        <footer className="pie relative z-10 border-t border-borde px-4 py-4 text-center text-sm text-tenue">
-          Prototipo de demostración · Jornadas y personas ficticias · No contiene datos de pacientes · Vibeathon
+        <footer className="border-t border-borde px-4 py-4 text-center text-sm text-tenue">
+          Prototipo con datos ficticios · No contiene datos de pacientes · Vibeathon
           México 2026, Reto 2 de EIRA Movimiento Rosa A.C.
         </footer>
       </body>

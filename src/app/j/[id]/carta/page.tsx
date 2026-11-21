@@ -8,6 +8,11 @@ import { BotonImprimir } from "@/components/BotonImprimir";
 
 export const dynamic = "force-dynamic";
 
+/** Dato proporcionado por el municipio: se subraya para distinguirlo del texto fijo. */
+function B({ children }: { children: React.ReactNode }) {
+  return <strong className="underline decoration-rosa decoration-2 underline-offset-2">{children}</strong>;
+}
+
 export default async function Carta({ params, searchParams }: PageProps<"/j/[id]/carta">) {
   const sesion = await exigirSesion();
   const { id } = await params;
@@ -24,9 +29,6 @@ export default async function Carta({ params, searchParams }: PageProps<"/j/[id]
   // Sello de integridad: la huella guardada al generar debe coincidir con la plantilla vigente.
   const huellaActual = hashPlantillaCarta();
   const integra = d.plantilla_hash === huellaActual;
-  const B = ({ children }: { children: React.ReactNode }) => (
-    <strong className="underline decoration-rosa decoration-2 underline-offset-2">{children}</strong>
-  );
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-6">

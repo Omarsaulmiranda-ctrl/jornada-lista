@@ -54,7 +54,7 @@ export default async function Expediente({ params }: PageProps<"/j/[id]">) {
           {jornada.estado === "confirmada" ? (
             <p className="mt-4 rounded-lg bg-verde-suave p-3 font-semibold text-verde">
               Jornada confirmada por {jornada.confirmada_por}
-              {jornada.confirmada_en ? ` el ${fechaHora(jornada.confirmada_en)}` : ""}.
+              {jornada.confirmada_en ? ` el ${fechaHora(jornada.confirmada_en)}` : ""}
             </p>
           ) : resumen.listaParaConfirmar ? (
             <div className="mt-4 rounded-lg bg-verde-suave p-3">
